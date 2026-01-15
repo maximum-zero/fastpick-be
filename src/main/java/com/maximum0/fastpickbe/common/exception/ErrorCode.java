@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum ErrorCode {
     // 공통
     INVALID_INPUT_VALUE(400, "C001", "올바르지 않은 입력값입니다."),
+    INVALID_TYPE_VALUE(400, "C002", "입력 타입이 일치하지 않습니다."),
     INTERNAL_SERVER_ERROR(500, "C002", "서버 내부 오류가 발생했습니다."),
 
     // 유저/인증 (Auth)
