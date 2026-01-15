@@ -13,8 +13,10 @@ public enum ErrorCode {
 
     // 유저/인증 (Auth)
     USER_NOT_FOUND(404, "U001", "존재하지 않는 사용자입니다."),
+    DUPLICATE_EMAIL(409, "U002", "이미 존재하는 이메일입니다."),
     INVALID_TOKEN(401, "A001", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(401, "A002", "만료된 토큰입니다."),
+    LOGIN_FAILED(401, "A003", "아이디 또는 비밀번호가 일치하지 않습니다."),
 
     // 쿠폰 (Coupon)
     COUPON_NOT_FOUND(404, "CP01", "존재하지 않는 쿠폰입니다."),
