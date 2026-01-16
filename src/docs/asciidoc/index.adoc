@@ -1,0 +1,48 @@
+= 🚀 FastPick API Document
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:sectnums:
+:docinfo: shared-head
+
+[[Overview]]
+== 📌 개요
+이 문서는 FastPick 서비스의 백엔드 API 명세서입니다.
+
+=== 공통 응답 규격
+모든 API는 아래와 같은 공통 응답 구조를 가집니다.
+
+[cols="2,2,5", options="header"]
+|===
+|필드명|타입|설명
+|`code`|`String`|사용자 정의 응답 코드
+|`message`|`String`|결과 메시지
+|`data`|`Object`|실제 데이터
+|===
+
+[[Auth-API]]
+== 🔑 인증 API (Auth)
+
+=== 회원가입
+새로운 사용자 계정을 생성합니다.
+
+==== [성공 사례]
+operation::auth/signup[snippets='http-request,request-fields,response-body,response-fields']
+
+==== [실패 사례 - 유효하지 않은 데이터]
+operation::auth/signup-fail[snippets='response-body,response-fields']
+
+==== [실패 사례 - 이미 가입된 이메일]
+operation::auth/signup-fail-duplicate[snippets='response-body,response-fields']
+
+=== 로그인
+사용자 자격 증명을 확인하고 JWT 토큰을 발급합니다.
+
+==== [성공 사례]
+operation::auth/login[snippets='http-request,request-fields,response-body,response-fields']
+
+==== [실패 사례 - 자격 증명 실패]
+operation::auth/login-fail[snippets='response-body,response-fields']
