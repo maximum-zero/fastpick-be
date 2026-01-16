@@ -3,13 +3,16 @@ package com.maximum0.fastpickbe.auth.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
+import com.maximum0.fastpickbe.auth.ui.dto.TokenResponse;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
+import com.maximum0.fastpickbe.common.security.provider.JwtTokenProvider;
 import com.maximum0.fastpickbe.user.domain.User;
 import com.maximum0.fastpickbe.user.domain.UserRepository;
 import java.util.Optional;
@@ -20,6 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +36,12 @@ class AuthServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
     @Nested
     @DisplayName("회원가입 테스트")
     class SignUpTest {
@@ -39,10 +50,13 @@ class AuthServiceTest {
         void signUp_Success() {
             // given
             SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
-            User user = User.create(request.email(), request.password(), request.name());
+            String encodedPassword = "encodedPassword";
+
+            User user = User.create(request.email(), encodedPassword, request.name());
             ReflectionTestUtils.setField(user, "id", 1L);
 
             given(userRepository.existsByEmail(request.email())).willReturn(false);
+            given(passwordEncoder.encode(request.password())).willReturn(encodedPassword);
             given(userRepository.save(any(User.class))).willReturn(user);
 
             // when
@@ -78,14 +92,20 @@ class AuthServiceTest {
             LoginRequest request = new LoginRequest("test@test.com", "password123");
             User user = User.create(request.email(), request.password(), "테스터");
             ReflectionTestUtils.setField(user, "id", 1L);
+            String accessToken = "access-token";
+            String refreshToken = "refresh-token";
 
             given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+            given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+            given(jwtTokenProvider.createAccessToken(any(Authentication.class))).willReturn(accessToken);
+            given(jwtTokenProvider.createRefreshToken(any(Authentication.class))).willReturn(refreshToken);
 
             // when
-            Long userId = authService.login(request);
+            TokenResponse response = authService.login(request);
 
             // then
-            assertThat(userId).isEqualTo(1L);
+            assertThat(response.accessToken()).isEqualTo(accessToken);
+            assertThat(response.refreshToken()).isEqualTo(refreshToken);
         }
 
         @Test
@@ -106,9 +126,10 @@ class AuthServiceTest {
         void login_ThrowsException_WhenPasswordMismatch() {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "wrongpassword");
-            User user = User.create(request.email(), "password123", "테스터");
+            User user = User.create(request.email(), "encodedPassword", "테스터");
 
             given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+            given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
 
             // when & then
             assertThatThrownBy(() -> authService.login(request))

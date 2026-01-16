@@ -13,3 +13,12 @@ spring:
         format_sql: true
         naming:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+jwt:
+  secret-key: vme_secret_key_for_test_at_least_32_characters_long
+  access-token-expiration: 30m
+  refresh-token-expiration: 7d
+
+cors:
+  allowed-origins:
+    - "*"

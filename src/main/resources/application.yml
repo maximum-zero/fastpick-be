@@ -19,3 +19,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         naming:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+jwt:
+  secret-key: ${SECRET_KEY}
+  access-token-expiration: 30m
+  refresh-token-expiration: 7d
+
+cors:
+  allowed-origins:
+    - "http://localhost:3000"

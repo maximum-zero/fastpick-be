@@ -11,4 +11,8 @@ public enum UserRole {
 
     private final String key;
     private final String title;
+
+    public String getWithPrefix() {
+        return "ROLE_" + this.name();
+    }
 }

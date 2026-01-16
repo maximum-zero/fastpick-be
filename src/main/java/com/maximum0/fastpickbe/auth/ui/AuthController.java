@@ -3,6 +3,7 @@ package com.maximum0.fastpickbe.auth.ui;
 import com.maximum0.fastpickbe.auth.application.AuthService;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
+import com.maximum0.fastpickbe.auth.ui.dto.TokenResponse;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class AuthController {
      * @return 인증된 유저의 식별자(ID)를 담은 공통 응답
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Long>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(authService.login(request)));
     }
 

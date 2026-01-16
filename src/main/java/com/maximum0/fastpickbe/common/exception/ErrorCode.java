@@ -9,7 +9,9 @@ public enum ErrorCode {
     // 공통
     INVALID_INPUT_VALUE(400, "C001", "올바르지 않은 입력값입니다."),
     INVALID_TYPE_VALUE(400, "C002", "입력 타입이 일치하지 않습니다."),
-    INTERNAL_SERVER_ERROR(500, "C002", "서버 내부 오류가 발생했습니다."),
+    UNAUTHORIZED(401, "C003", "인증이 필요한 서비스입니다."),
+    FORBIDDEN(403, "C004", "권한이 없는 사용자입니다."),
+    INTERNAL_SERVER_ERROR(500, "C005", "서버 내부 오류가 발생했습니다."),
 
     // 유저/인증 (Auth)
     USER_NOT_FOUND(404, "U001", "존재하지 않는 사용자입니다."),
