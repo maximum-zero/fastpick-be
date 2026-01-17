@@ -55,6 +55,12 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
 
+    // Querydsl
+    implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.1.0:jakarta")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:postgresql")
