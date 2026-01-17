@@ -158,4 +158,13 @@ public class Coupon extends BaseEntity {
         validateIssuanceCondition(now);
         this.issuedQuantity++;
     }
+
+    /**
+     * 쿠폰을 중단(비활성화) 처리합니다.
+     * 관리자에 의해 쿠폰 발급 및 조회를 제한할 때 사용합니다.
+     */
+    public void disable() {
+        this.useStatus = CouponUseStatus.DISABLED;
+    }
+
 }

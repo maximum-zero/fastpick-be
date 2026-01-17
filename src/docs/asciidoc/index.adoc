@@ -23,6 +23,7 @@
 |`data`|`Object`|실제 데이터
 |===
 
+
 [[Auth-API]]
 == 🔑 인증 API (Auth)
 
@@ -33,10 +34,10 @@
 operation::auth/signup[snippets='http-request,request-fields,response-body,response-fields']
 
 ==== [실패 사례 - 유효하지 않은 데이터]
-operation::auth/signup-fail[snippets='response-body,response-fields']
+operation::auth/signup-fail[snippets='response-body']
 
 ==== [실패 사례 - 이미 가입된 이메일]
-operation::auth/signup-fail-duplicate[snippets='response-body,response-fields']
+operation::auth/signup-fail-duplicate[snippets='response-body']
 
 === 로그인
 사용자 자격 증명을 확인하고 JWT 토큰을 발급합니다.
@@ -45,4 +46,23 @@ operation::auth/signup-fail-duplicate[snippets='response-body,response-fields']
 operation::auth/login[snippets='http-request,request-fields,response-body,response-fields']
 
 ==== [실패 사례 - 자격 증명 실패]
-operation::auth/login-fail[snippets='response-body,response-fields']
+operation::auth/login-fail[snippets='response-body']
+
+
+[[Coupon-API]]
+== 🎟️ 쿠폰 API (Coupon)
+
+=== 쿠폰 목록 조회
+조건에 맞는 쿠폰 목록을 페이징하여 조회합니다.
+
+==== [성공 사례]
+operation::coupon/list[snippets='http-request,query-parameters,response-body,response-fields']
+
+=== 쿠폰 상세 조회
+특정 쿠폰의 상세 정보를 조회합니다.
+
+==== [성공 사례]
+operation::coupon/detail[snippets='http-request,path-parameters,response-body,response-fields']
+
+==== [실패 사례 - 존재하지 않는 쿠폰]
+operation::coupon/detail-fail[snippets='response-body']
