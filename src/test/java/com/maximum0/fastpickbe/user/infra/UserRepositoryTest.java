@@ -30,7 +30,7 @@ class UserRepositoryTest {
 
         @Test
         @DisplayName("유저를 저장하고 이메일로 찾을 수 있다")
-        void save_and_findByEmail_success() {
+        void saveAndFindByEmail_returnsUser_whenUserExists() {
             // given
             String email = "test@example.com";
             String name = "테스터";
@@ -48,7 +48,7 @@ class UserRepositoryTest {
 
         @Test
         @DisplayName("존재하지 않는 이메일로 조회하면 빈 Optional을 반환한다")
-        void findByEmail_fail_not_found() {
+        void findByEmail_returnsEmpty_whenUserNotFound() {
             // when
             Optional<User> foundUser = userRepository.findByEmail("non-existent@example.com");
 
@@ -63,7 +63,7 @@ class UserRepositoryTest {
 
         @Test
         @DisplayName("이미 존재하는 이메일이면 true를 반환한다")
-        void existsByEmail_return_true() {
+        void existsByEmail_returnsTrue_whenEmailExists() {
             // given
             String email = "duplicate@example.com";
             userRepository.save(User.create(email, "password", "user1"));
@@ -77,7 +77,7 @@ class UserRepositoryTest {
 
         @Test
         @DisplayName("존재하지 않는 이메일이면 false를 반환한다")
-        void existsByEmail_return_false() {
+        void existsByEmail_returnsFalse_whenEmailDoesNotExist() {
             // when
             boolean exists = userRepository.existsByEmail("new@example.com");
 

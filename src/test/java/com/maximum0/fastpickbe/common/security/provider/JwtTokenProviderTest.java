@@ -28,7 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("JWT 도메인 단위 테스트")
+@DisplayName("JwtTokenProvider 단위 테스트")
 class JwtTokenProviderTest {
 
     private JwtTokenProvider jwtTokenProvider;
@@ -49,12 +49,12 @@ class JwtTokenProviderTest {
     }
 
     @Nested
-    @DisplayName("토큰 생성 및 인증 객체 조회 테스트")
+    @DisplayName("인증 객체 조회 테스트")
     class GetAuthentication_Behavior_Test {
 
         @Test
         @DisplayName("인증 객체를 통해 토큰을 생성하고, 정상적으로 복구한다")
-        void getAuthentication_Success_ReturnAuthentication() {
+        void getAuthentication_returnsAuthentication_fromValidToken() {
             // given
             given(jwtProperties.accessTokenExpiration()).willReturn(Duration.ofMinutes(30));
             Authentication auth = new UsernamePasswordAuthenticationToken("1", "",
@@ -71,7 +71,7 @@ class JwtTokenProviderTest {
 
         @Test
         @DisplayName("토큰에 권한 정보가 누락된 경우, INTERNAL_SERVER_ERROR를 발생시킨다")
-        void getAuthentication_NoAuthorities_ThrowInternalServerError() {
+        void getAuthentication_throwsBusinessException_whenNoAuthorities() {
             // given
             SecretKey key = Keys.hmacShaKeyFor(secretKeyStr.getBytes(StandardCharsets.UTF_8));
             String tokenWithoutAuth = Jwts.builder().subject("1").signWith(key).compact();
@@ -85,11 +85,11 @@ class JwtTokenProviderTest {
 
     @Nested
     @DisplayName("토큰 유효성 검증 테스트")
-    class ValidateToken_Behavior_Test {
+    class ValidateToken_Test {
 
         @Test
         @DisplayName("유효 기간 내의 정상적인 토큰인 경우, true를 반환한다")
-        void validateToken_ValidToken_ReturnTrue() {
+        void validateToken_returnsTrue_whenTokenIsValid() {
             // given
             given(jwtProperties.accessTokenExpiration()).willReturn(Duration.ofMinutes(30));
             Authentication auth = new UsernamePasswordAuthenticationToken("1", "", Collections.emptyList());
@@ -104,7 +104,7 @@ class JwtTokenProviderTest {
 
         @Test
         @DisplayName("서명이 일치하지 않는 토큰인 경우, false를 반환한다")
-        void validateToken_InvalidSignature_ReturnFalse() {
+        void validateToken_returnsFalse_whenSignatureInvalid() {
             // given
             SecretKey wrongKey = Keys.hmacShaKeyFor("wrong_secret_key_at_least_32_chars_long".getBytes());
             String invalidToken = Jwts.builder().subject("1").signWith(wrongKey).compact();
@@ -118,7 +118,7 @@ class JwtTokenProviderTest {
 
         @Test
         @DisplayName("JWT 형식이 올바르지 않은 경우, false를 반환한다")
-        void validateToken_MalformedToken_ReturnFalse() {
+        void validateToken_returnsFalse_whenTokenMalformed() {
             // given
             String malformedToken = "invalid.token.structure";
 
@@ -131,7 +131,7 @@ class JwtTokenProviderTest {
 
         @Test
         @DisplayName("토큰이 null이거나 비어있는 경우, false를 반환한다")
-        void validateToken_EmptyToken_ReturnFalse() {
+        void validateToken_returnsFalse_whenTokenIsEmpty() {
             // when & then
             assertThat(jwtTokenProvider.validateToken(null)).isFalse();
             assertThat(jwtTokenProvider.validateToken("")).isFalse();
@@ -139,12 +139,12 @@ class JwtTokenProviderTest {
     }
 
     @Nested
-    @DisplayName("토큰 종류별 생성 테스트")
-    class TokenGeneration_Behavior_Test {
+    @DisplayName("토큰 생성 테스트")
+    class TokenGeneration_Test {
 
         @Test
         @DisplayName("Access Token과 Refresh Token은 서로 다른 만료 시간을 가진다")
-        void createToken_DifferentExpiration_Success() {
+        void createTokens_haveDifferentExpiration_always() {
             // given
             given(jwtProperties.accessTokenExpiration()).willReturn(Duration.ofMinutes(30));
             given(jwtProperties.refreshTokenExpiration()).willReturn(Duration.ofDays(7));

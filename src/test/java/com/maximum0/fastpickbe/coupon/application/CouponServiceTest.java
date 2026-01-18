@@ -96,7 +96,7 @@ class CouponServiceTest {
             // given
             Long couponId = 1L;
             String title = "테스트 쿠폰";
-            Coupon coupon = Coupon.create(couponId, title, 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(couponId, title, 100, 0, now.minusDays(1), now.plusDays(1));
             given(couponRepository.findActiveById(couponId)).willReturn(Optional.of(coupon));
 
             // when

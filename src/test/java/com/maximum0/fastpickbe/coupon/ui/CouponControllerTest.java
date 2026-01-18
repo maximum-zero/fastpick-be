@@ -44,7 +44,7 @@ class CouponControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("검색 조건과 페이지 번호로 요청하면 쿠폰 목록을 반환한다.")
-        void getCoupons_ReturnsSuccess_WhenRequestIsValid() throws Exception {
+        void getCoupons_returnsPage_whenRequestIsValid() throws Exception {
             // given
             CouponSummaryResponse summary = CouponSummaryResponse.builder()
                     .id(1L)
@@ -89,7 +89,7 @@ class CouponControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("존재하는 쿠폰 ID로 조회하면 상세 정보를 반환한다.")
-        void getCoupon_ReturnsSuccess_WhenIdExists() throws Exception {
+        void getCoupon_returnsCouponResponse_whenIdExists() throws Exception {
             // given
             Long couponId = 1L;
             CouponResponse response = new CouponResponse(
@@ -119,7 +119,7 @@ class CouponControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("존재하지 않는 쿠폰 ID로 조회하면 COUPON_NOT_FOUND 예외를 반환한다.")
-        void getCoupon_ReturnsError_WhenIdDoesNotExist() throws Exception {
+        void getCoupon_returnsNotFound_whenIdDoesNotExist() throws Exception {
             // given
             Long couponId = 999L;
             ErrorCode errorCode = ErrorCode.COUPON_NOT_FOUND;

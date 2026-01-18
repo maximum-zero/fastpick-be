@@ -78,7 +78,7 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
-    public static Coupon create(Long id, String title, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public static Coupon forTest(Long id, String title, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         return Coupon.builder()
                 .id(id)
                 .title(title)

@@ -59,7 +59,7 @@ class CouponIssueServiceTest {
             // given
             Long couponId = 1L;
             User user = User.forTest(1L, "test@test.com", "pw", "테스터");
-            Coupon coupon = Coupon.create(couponId, "선착순 쿠폰", 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(couponId, "선착순 쿠폰", 100, 0, now.minusDays(1), now.plusDays(1));
 
             IssuedCoupon mockSavedIssuedCoupon = mock(IssuedCoupon.class);
 
@@ -83,7 +83,7 @@ class CouponIssueServiceTest {
             // given
             Long couponId = 1L;
             User user = User.forTest(1L, "test@test.com", "pw", "테스터");
-            Coupon coupon = Coupon.create(couponId, "중복 쿠폰", 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(couponId, "중복 쿠폰", 100, 0, now.minusDays(1), now.plusDays(1));
 
             given(couponRepository.findByIdWithLock(couponId)).willReturn(Optional.of(coupon));
             given(issuedCouponRepository.existsByUserAndCoupon(user, coupon)).willReturn(true);

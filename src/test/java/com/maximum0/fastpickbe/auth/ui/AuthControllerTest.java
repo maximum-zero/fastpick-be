@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-@DisplayName("인증 컨트롤러 단위 테스트")
+@DisplayName("AuthController 단위 테스트")
 class AuthControllerTest extends BaseRestDocsTest {
     private final AuthService authService = Mockito.mock(AuthService.class);
 
@@ -36,7 +36,7 @@ class AuthControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("올바른 가입 정보로 요청하면 성공 코드와 생성된 ID를 반환한다.")
-        void signUp_ReturnsSuccess_WhenRequestIsValid() throws Exception {
+        void signUp_returnsUserId_whenRequestIsValid() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
             given(authService.signUp(any())).willReturn(1L);
@@ -60,7 +60,7 @@ class AuthControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("이메일 형식이 올바르지 않으면 INVALID_INPUT_VALUE 예외를 반환한다.")
-        void signUp_ReturnsError_WhenEmailIsInvalid() throws Exception {
+        void signUp_returnsBadRequest_whenEmailIsInvalid() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("invalid-email", "password123", "테스터");
 
@@ -76,7 +76,7 @@ class AuthControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("이미 가입된 이메일이면 DUPLICATE_EMAIL 예외를 반환한다.")
-        void signUp_ReturnsError_WhenEmailAlreadyExists() throws Exception {
+        void signUp_returnsConflict_whenEmailAlreadyExists() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("exists@test.com", "password123", "테스터");
             ErrorCode errorCode = ErrorCode.DUPLICATE_EMAIL;
@@ -99,7 +99,7 @@ class AuthControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("이메일과 비밀번호가 일치하면 성공 코드와 토큰을 반환한다.")
-        void login_ReturnsSuccess_WhenCredentialsAreValid() throws Exception {
+        void login_returnsTokenResponse_whenCredentialsAreValid() throws Exception {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "password123");
             String accessToken = "access-token";
@@ -131,7 +131,7 @@ class AuthControllerTest extends BaseRestDocsTest {
 
         @Test
         @DisplayName("로그인 정보가 일치하지 않으면 LOGIN_FAILED 예외를 반환한다.")
-        void login_ReturnsError_WhenLoginFails() throws Exception {
+        void login_returnsUnauthorized_whenLoginFails() throws Exception {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "wrong-password");
             ErrorCode errorCode = ErrorCode.LOGIN_FAILED;

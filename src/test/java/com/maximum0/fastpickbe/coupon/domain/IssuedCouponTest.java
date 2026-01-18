@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("발급 쿠폰 도메인 단위 테스트")
+@DisplayName("IssuedCoupon 도메인 단위 테스트")
 class IssuedCouponTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
@@ -16,8 +16,8 @@ class IssuedCouponTest {
     class UseCouponTest {
 
         @Test
-        @DisplayName("쿠폰 사용 시 사용 시점(usedAt)이 기록된다.")
-        void use_SetsUsedAt_Always() {
+        @DisplayName("쿠폰 사용 시 사용 시점이 기록되고, 사용 상태가 true가 된다.")
+        void use_setsUsedAtAndStatus_whenCalled() {
             // given
             IssuedCoupon issuedCoupon = IssuedCoupon.create(null, null);
 

@@ -28,7 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("인증 서비스 단위 테스트")
+@DisplayName("AuthService 단위 테스트")
 class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
@@ -47,7 +47,7 @@ class AuthServiceTest {
     class SignUpTest {
         @Test
         @DisplayName("정상적인 정보로 가입하면 유저 ID를 반환한다.")
-        void signUp_Success() {
+        void signUp_savesUserAndReturnsId_whenRequestIsValid() {
             // given
             SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
             String encodedPassword = "encodedPassword";
@@ -87,7 +87,7 @@ class AuthServiceTest {
 
         @Test
         @DisplayName("이메일과 비밀번호가 일치하면 유저 ID를 반환한다.")
-        void login_Success() {
+        void login_returnsTokenResponse_whenCredentialsAreValid() {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "password123");
             User user = User.create(request.email(), request.password(), "테스터");
@@ -110,7 +110,7 @@ class AuthServiceTest {
 
         @Test
         @DisplayName("존재하지 않는 이메일로 로그인하면 LOGIN_FAILED 예외를 던진다.")
-        void login_ThrowsException_WhenEmailNotFound() {
+        void login_throwsBusinessException_whenLoginFailed() {
             // given
             LoginRequest request = new LoginRequest("wrong@test.com", "password123");
             given(userRepository.findByEmail(request.email())).willReturn(Optional.empty());
@@ -123,7 +123,7 @@ class AuthServiceTest {
 
         @Test
         @DisplayName("비밀번호가 일치하지 않으면 LOGIN_FAILED 예외를 던진다.")
-        void login_ThrowsException_WhenPasswordMismatch() {
+        void login_throwsBusinessException_whenPasswordMismatch() {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "wrongpassword");
             User user = User.create(request.email(), "encodedPassword", "테스터");
