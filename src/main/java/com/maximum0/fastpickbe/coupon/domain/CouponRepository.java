@@ -10,5 +10,8 @@ import org.springframework.data.domain.Pageable;
 public interface CouponRepository {
     Coupon save(Coupon coupon);
     Optional<Coupon> findActiveById(Long id);
+    Optional<Coupon> findByIdWithLock(Long id);
     Page<CouponSummaryResponse> findAll(CouponListRequest request, Pageable pageable, LocalDateTime now);
+
+    void deleteAllInBatch();
 }

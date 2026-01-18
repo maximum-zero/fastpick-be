@@ -41,7 +41,8 @@ public class User extends BaseEntity {
     private UserRole role;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private User(String email, String password, String name, UserRole role) {
+    private User(Long id, String email, String password, String name, UserRole role) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
@@ -50,6 +51,16 @@ public class User extends BaseEntity {
 
     public static User create(String email, String rawPassword, String name) {
         return User.builder()
+                .email(email)
+                .password(rawPassword)
+                .name(name)
+                .role(UserRole.USER)
+                .build();
+    }
+
+    public static User forTest(Long id, String email, String rawPassword, String name) {
+        return User.builder()
+                .id(id)
                 .email(email)
                 .password(rawPassword)
                 .name(name)

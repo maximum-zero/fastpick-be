@@ -66,3 +66,18 @@ operation::coupon/detail[snippets='http-request,path-parameters,response-body,re
 
 ==== [실패 사례 - 존재하지 않는 쿠폰]
 operation::coupon/detail-fail[snippets='response-body']
+
+=== 쿠폰 발급 요청
+인증된 사용자가 특정 쿠폰의 발급을 요청합니다.
+
+==== [성공 사례]
+operation::coupon-issue/success[snippets='http-request,request-fields,response-body,response-fields']
+
+==== [실패 사례 - 이미 발급받은 쿠폰]
+operation::coupon-issue/fail-already-issued[snippets='response-body']
+
+==== [실패 사례 - 쿠폰 존재하지 않음]
+operation::coupon-issue/fail-not-found[snippets='response-body']
+
+==== [실패 사례 - 수량 소진]
+operation::coupon-issue/fail-exhausted[snippets='response-body']

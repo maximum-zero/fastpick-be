@@ -24,7 +24,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class CouponRepositoryImpl implements CouponRepository {
-
     private final JpaCouponRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
 
@@ -54,6 +53,16 @@ public class CouponRepositoryImpl implements CouponRepository {
                         )
                         .fetchOne()
         );
+    }
+
+    /**
+     * 비관적 락을 적용하여 쿠폰 엔티티를 조회합니다.
+     * @param id 쿠폰 식별자
+     * @return 쿠폰 엔티티 (Optional)
+     */
+    @Override
+    public Optional<Coupon> findByIdWithLock(Long id) {
+        return jpaRepository.findByIdWithLock(id);
     }
 
     /**
@@ -88,6 +97,11 @@ public class CouponRepositoryImpl implements CouponRepository {
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne)
                 .map(c -> CouponSummaryResponse.from(c, now));
+    }
+
+    @Override
+    public void deleteAllInBatch() {
+        jpaRepository.deleteAllInBatch();
     }
 
     /**

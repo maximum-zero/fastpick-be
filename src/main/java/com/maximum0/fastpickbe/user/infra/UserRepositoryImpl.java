@@ -2,6 +2,7 @@ package com.maximum0.fastpickbe.user.infra;
 
 import com.maximum0.fastpickbe.user.domain.User;
 import com.maximum0.fastpickbe.user.domain.UserRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,6 +18,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<User> saveAll(List<User> users) {
+        return userJpaRepository.saveAll(users);
+    }
+
+    @Override
     public Optional<User> findById(Long id) {
         return userJpaRepository.findById(id);
     }
@@ -29,5 +35,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return userJpaRepository.existsByEmail(email);
+    }
+
+    @Override
+    public void deleteAllInBatch() {
+        userJpaRepository.deleteAllInBatch();
     }
 }
