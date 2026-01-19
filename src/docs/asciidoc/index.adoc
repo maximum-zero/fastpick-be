@@ -71,7 +71,7 @@ operation::coupon/detail-fail[snippets='response-body']
 인증된 사용자가 특정 쿠폰의 발급을 요청합니다.
 
 ==== [성공 사례]
-operation::coupon-issue/success[snippets='http-request,request-fields,response-body,response-fields']
+operation::coupon-issue/success[snippets='http-request,request-headers,request-fields,response-body,response-fields']
 
 ==== [실패 사례 - 이미 발급받은 쿠폰]
 operation::coupon-issue/fail-already-issued[snippets='response-body']
@@ -81,3 +81,13 @@ operation::coupon-issue/fail-not-found[snippets='response-body']
 
 ==== [실패 사례 - 수량 소진]
 operation::coupon-issue/fail-exhausted[snippets='response-body']
+
+
+[[My-Coupon-API]]
+== 🎫 내 쿠폰 API (My Coupon)
+
+=== 내 쿠폰 목록 조회
+인증된 사용자의 쿠폰 목록을 조회합니다.
+
+==== [성공 사례]
+operation::my-coupons/list[snippets='http-request,request-headers,query-parameters,response-body,response-fields']

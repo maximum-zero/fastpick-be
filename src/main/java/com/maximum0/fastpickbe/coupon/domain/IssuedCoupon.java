@@ -73,4 +73,19 @@ public class IssuedCoupon extends BaseCreateEntity {
         return usedAt != null;
     }
 
+    /**
+     * 현재 발급된 쿠폰의 상태를 동적으로 계산합니다.
+     * @param now 기준 시간
+     * @return 쿠폰 상태 (AVAILABLE, USED, EXPIRED)
+     */
+    public MyCouponStatus calculateStatus(LocalDateTime now) {
+        if (isUsed()) {
+            return MyCouponStatus.USED;
+        }
+        if (coupon.isExpired(now)) {
+            return MyCouponStatus.EXPIRED;
+        }
+        return MyCouponStatus.AVAILABLE;
+    }
+
 }

@@ -3,6 +3,8 @@ package com.maximum0.fastpickbe.coupon.ui;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
@@ -54,12 +56,16 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
                             .with(user(principalDetails))
+                            .header("Authorization", "Bearer dummy-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value("S000"))
                     .andExpect(jsonPath("$.data").value(issuedCouponId))
                     .andDo(restDocument("coupon-issue/success",
+                            requestHeaders(
+                                    headerWithName("Authorization").description("Bearer <ACCESS_TOKEN>")
+                            ),
                             requestFields(
                                     fieldWithPath("couponId").description("발급 요청할 쿠폰 ID")
                             ),
@@ -83,6 +89,7 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
                             .with(user(principalDetails))
+                            .header("Authorization", "Bearer dummy-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -107,6 +114,7 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
                             .with(user(principalDetails))
+                            .header("Authorization", "Bearer dummy-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
@@ -129,6 +137,7 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
                             .with(user(principalDetails))
+                            .header("Authorization", "Bearer dummy-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
