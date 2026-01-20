@@ -100,3 +100,7 @@ tasks.bootJar {
         into("static/docs")
     }
 }
+
+tasks.jar {
+    enabled = false
+}
