@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'JDK 17'
+    }
+
     stages {
         stage('Source Checkout') {
             steps {
@@ -11,9 +15,15 @@ pipeline {
 
         stage('Test & Build') {
             steps {
-                sh 'chmod +x gradlew'
-                // Testcontainers 기반 통합 테스트 실행
-                sh './gradlew clean test -Dspring.profiles.active=test'
+                withEnv([
+                    "DOCKER_HOST=unix:///var/run/docker.sock",
+                    "TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal",
+                    "TESTCONTAINERS_RYUK_DISABLED=true"
+                ]) {
+                    sh 'chmod +x gradlew'
+                    sh 'chmod 666 /var/run/docker.sock || true'
+                    sh './gradlew clean test -Dspring.profiles.active=test'
+                }
             }
         }
     }
@@ -21,7 +31,7 @@ pipeline {
     post {
         always {
             // 빌드 결과에 관계없이 테스트 리포트 집계
-            junit '**/build/test-results/test/*.xml'
+            junit allowEmptyResults: true, testResults: '**/build/test-results/**/*.xml'
         }
     }
 }
