@@ -63,7 +63,7 @@ class MyCouponServiceTest {
             MyCouponListRequest request = new MyCouponListRequest(null, MyCouponStatusFilter.ALL);
             Pageable pageable = Pageable.unpaged();
 
-            Coupon coupon = Coupon.forTest(10L, "할인쿠폰", 100, 10, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(10L, "브랜드명", "할인쿠폰", "요약 설명", "상세 설명", 100, 10, now.minusDays(1), now.plusDays(1));
             IssuedCoupon issuedCoupon = IssuedCoupon.create(user, coupon);
             
             Page<IssuedCoupon> mockPage = new PageImpl<>(List.of(issuedCoupon));

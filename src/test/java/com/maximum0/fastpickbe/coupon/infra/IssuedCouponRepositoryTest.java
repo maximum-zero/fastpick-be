@@ -50,7 +50,7 @@ class IssuedCouponRepositoryTest {
             user = User.create("test@test.com", "encodedPassword", "테스터");
             entityManager.persist(user);
 
-            coupon = Coupon.create("테스트쿠폰", 100, now, now.plusDays(1));
+            coupon = Coupon.create("브랜드", "테스트쿠폰", "요약 설명", "상세 설명", 100, now, now.plusDays(1));
             entityManager.persist(coupon);
 
             entityManager.flush();
@@ -101,9 +101,9 @@ class IssuedCouponRepositoryTest {
             user1 = entityManager.persist(User.create("user1@test.com", "pw", "유저1"));
             user2 = entityManager.persist(User.create("user2@test.com", "pw", "유저2"));
 
-            couponA = entityManager.persist(Coupon.create("할인쿠폰A", 100, now.minusDays(10), now.plusDays(10)));
-            Coupon couponB = entityManager.persist(Coupon.create("할인쿠폰B", 100, now.minusDays(10), now.plusDays(10)));
-            Coupon expiredCoupon = entityManager.persist(Coupon.create("만료된쿠폰", 100, now.minusDays(20), now.minusDays(10)));
+            couponA = entityManager.persist(Coupon.create("브랜드", "할인쿠폰A", "요약 설명", "상세 설명", 100, now.minusDays(10), now.plusDays(10)));
+            Coupon couponB = entityManager.persist(Coupon.create("브랜드", "할인쿠폰B", "요약 설명", "상세 설명", 100, now.minusDays(10), now.plusDays(10)));
+            Coupon expiredCoupon = entityManager.persist(Coupon.create("브랜드", "만료된쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(20), now.minusDays(10)));
 
             IssuedCoupon issued1 = IssuedCoupon.create(user1, couponA);
             IssuedCoupon issued2 = IssuedCoupon.create(user1, couponB);

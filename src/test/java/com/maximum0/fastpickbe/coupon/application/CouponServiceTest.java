@@ -66,7 +66,11 @@ class CouponServiceTest {
 
             CouponSummaryResponse summary = new CouponSummaryResponse(
                     1L,
+                    "브랜드",
                     "발급 중 쿠폰",
+                    "요약 설명",
+                    100,
+                    50,
                     now.minusDays(1),
                     now.plusDays(1),
                     CouponStatus.ISSUING
@@ -96,7 +100,7 @@ class CouponServiceTest {
             // given
             Long couponId = 1L;
             String title = "테스트 쿠폰";
-            Coupon coupon = Coupon.forTest(couponId, title, 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(couponId, "브랜드명", title, "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
             given(couponRepository.findActiveById(couponId)).willReturn(Optional.of(coupon));
 
             // when

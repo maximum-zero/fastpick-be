@@ -42,7 +42,7 @@ class CouponRepositoryTest {
         void saveAndFindActiveById_returnsCoupon_whenCouponIsActive() {
             // given
             String title = "활성화 된 쿠폰";
-            Coupon coupon = Coupon.create(title, 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드", title, "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
             Coupon saved = couponRepository.save(coupon);
 
             // when
@@ -57,7 +57,7 @@ class CouponRepositoryTest {
         @DisplayName("중단된(DISABLED) 쿠폰은 ID로 조회해도 빈 Optional을 반환한다")
         void findActiveById_returnsEmpty_whenCouponIsDisabled() {
             // given
-            Coupon coupon = Coupon.create("중단된 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드", "중단된 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
             coupon.disable();
             Coupon saved = couponRepository.save(coupon);
 
@@ -72,7 +72,7 @@ class CouponRepositoryTest {
         @DisplayName("비관적 락을 적용하여 쿠폰을 조회할 수 있다")
         void findByIdWithLock_returnsCoupon_withPessimisticLock() {
             // given
-            Coupon coupon = Coupon.create("락 테스트 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드", "락 테스트 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
             Coupon saved = couponRepository.save(coupon);
 
             // when
@@ -94,9 +94,9 @@ class CouponRepositoryTest {
         @DisplayName("발급 중(ISSUING) 필터 적용 시 조건에 맞는 쿠폰만 반환한다")
         void findAll_returnsOnlyIssuingCoupons_whenFilterTypeIsIssuing() {
             // given
-            couponRepository.save(Coupon.create("발급 중", 100, now.minusDays(1), now.plusDays(1)));
-            couponRepository.save(Coupon.create("발급 대기", 100, now.plusDays(1), now.plusDays(2)));
-            couponRepository.save(Coupon.create("만료", 100, now.minusDays(2), now.minusDays(1)));
+            couponRepository.save(Coupon.create("브랜드", "발급 중", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
+            couponRepository.save(Coupon.create("브랜드", "발급 대기", "요약 설명", "상세 설명", 100, now.plusDays(1), now.plusDays(2)));
+            couponRepository.save(Coupon.create("브랜드", "만료", "요약 설명", "상세 설명", 100, now.minusDays(2), now.minusDays(1)));
 
             CouponListRequest request = new CouponListRequest(null, CouponFilterType.ISSUING);
 
@@ -112,8 +112,8 @@ class CouponRepositoryTest {
         @DisplayName("제목 검색 조건이 있으면 해당 키워드가 포함된 쿠폰만 반환한다")
         void findAll_returnsFilteredCoupons_whenTitleKeywordProvided() {
             // given
-            couponRepository.save(Coupon.create("여름 할인 쿠폰", 100, now.minusDays(1), now.plusDays(1)));
-            couponRepository.save(Coupon.create("겨울 할인 쿠폰", 100, now.minusDays(1), now.plusDays(1)));
+            couponRepository.save(Coupon.create("브랜드", "여름 할인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
+            couponRepository.save(Coupon.create("브랜드", "겨울 할인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
 
             CouponListRequest request = new CouponListRequest("여름", CouponFilterType.ALL);
 

@@ -52,7 +52,9 @@ class MyCouponControllerTest extends BaseRestDocsTest {
             MyCouponResponse response = new MyCouponResponse(
                     1L,
                     10L,
-                    "할인쿠폰A",
+                    "브랜드명", "할인쿠폰A폰", "요약 설명",
+                    100,
+                    10,
                     LocalDateTime.now().plusDays(10),
                     MyCouponStatus.AVAILABLE
             );
@@ -82,9 +84,13 @@ class MyCouponControllerTest extends BaseRestDocsTest {
                                     parameterWithName("size").description("페이지 사이즈").optional()
                             ),
                             responseFields(successPageFields(
-                                    fieldWithPath("data.content[].id").description("발급된 쿠폰의 고유 ID"),
-                                    fieldWithPath("data.content[].couponId").description("원본 쿠폰의 ID"),
+                                    fieldWithPath("data.content[].id").description("발급 번호 ID"),
+                                    fieldWithPath("data.content[].couponId").description("쿠폰 ID"),
+                                    fieldWithPath("data.content[].brand").description("쿠폰 브랜드"),
                                     fieldWithPath("data.content[].title").description("쿠폰 이름"),
+                                    fieldWithPath("data.content[].summary").description("쿠폰 요약 설명"),
+                                    fieldWithPath("data.content[].totalQuantity").description("총 수량"),
+                                    fieldWithPath("data.content[].issuedQuantity").description("현재 발급 수량"),
                                     fieldWithPath("data.content[].expireAt").description("쿠폰 만료 일시"),
                                     fieldWithPath("data.content[].status").description("쿠폰 상태 (AVAILABLE, USED, EXPIRED)")
                             ))

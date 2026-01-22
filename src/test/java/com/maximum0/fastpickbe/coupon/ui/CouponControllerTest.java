@@ -74,7 +74,11 @@ class CouponControllerTest extends BaseRestDocsTest {
                             ),
                             responseFields(successPageFields(
                                     fieldWithPath("data.content[].id").description("쿠폰 식별자"),
+                                    fieldWithPath("data.content[].brand").description("쿠폰 브랜드"),
                                     fieldWithPath("data.content[].title").description("쿠폰 제목"),
+                                    fieldWithPath("data.content[].summary").description("쿠폰 요약 설명"),
+                                    fieldWithPath("data.content[].totalQuantity").description("총 수량"),
+                                    fieldWithPath("data.content[].issuedQuantity").description("현재 발급 수량"),
                                     fieldWithPath("data.content[].startAt").description("발급 시작 일시"),
                                     fieldWithPath("data.content[].endAt").description("발급 종료 일시"),
                                     fieldWithPath("data.content[].status").description("현재 상태")
@@ -93,7 +97,7 @@ class CouponControllerTest extends BaseRestDocsTest {
             // given
             Long couponId = 1L;
             CouponResponse response = new CouponResponse(
-                    couponId, "할인 쿠폰", 100, 0, now.minusDays(1), now.plusDays(1), CouponStatus.ISSUING
+                    couponId, "브랜드명", "할인 쿠폰", "요약 설명", 100, 0, now.minusDays(1), now.plusDays(1), CouponStatus.ISSUING
             );
             given(couponService.getCoupon(couponId)).willReturn(response);
 
@@ -107,7 +111,9 @@ class CouponControllerTest extends BaseRestDocsTest {
                             ),
                             responseFields(successFields(
                                     fieldWithPath("data.id").description("쿠폰 식별자"),
+                                    fieldWithPath("data.brand").description("쿠폰 브랜드"),
                                     fieldWithPath("data.title").description("쿠폰 제목"),
+                                    fieldWithPath("data.description").description("쿠폰 설명"),
                                     fieldWithPath("data.totalQuantity").description("총 수량"),
                                     fieldWithPath("data.issuedQuantity").description("현재 발급 수량"),
                                     fieldWithPath("data.startAt").description("발급 시작 일시"),

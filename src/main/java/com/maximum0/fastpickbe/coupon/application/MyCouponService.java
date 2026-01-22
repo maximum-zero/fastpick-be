@@ -35,12 +35,6 @@ public class MyCouponService {
         LocalDateTime now = LocalDateTime.now(clock);
         Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.findAllByUser(user, request, pageable, now);
 
-        return issuedCoupons.map(ic -> new MyCouponResponse(
-                ic.getId(),
-                ic.getCoupon().getId(),
-                ic.getCoupon().getTitle(),
-                ic.getCoupon().getEndAt(),
-                ic.calculateStatus(now)
-        ));
+        return issuedCoupons.map(ic -> MyCouponResponse.from(ic, now));
     }
 }

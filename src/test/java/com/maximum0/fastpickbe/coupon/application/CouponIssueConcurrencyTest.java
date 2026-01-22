@@ -67,7 +67,7 @@ class CouponIssueConcurrencyTest {
 
     private void prepareTestData() {
         Coupon coupon = Coupon.create(
-                "선착순 100명 쿠폰",
+                "브랜드명", "선착순 100명 쿠폰", "요약 설명", "상세 설명",
                 threadCount,
                 now.minusDays(1),
                 now.plusDays(1)
@@ -175,7 +175,7 @@ class CouponIssueConcurrencyTest {
         }
         newUsers.addAll(userRepository.saveAll(userList));
 
-        Coupon overSubCoupon = Coupon.create("선착순 50명 쿠폰", availableQuantity, now.minusDays(1), now.plusDays(1));
+        Coupon overSubCoupon = Coupon.create("브랜드명", "선착순 50명 쿠폰", "요약 설명", "상세 설명", availableQuantity, now.minusDays(1), now.plusDays(1));
         Long overSubCouponId = couponRepository.save(overSubCoupon).getId();
 
         ExecutorService executorService = Executors.newFixedThreadPool(32);

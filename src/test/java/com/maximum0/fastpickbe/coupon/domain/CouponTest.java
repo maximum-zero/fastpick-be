@@ -22,7 +22,7 @@ class CouponTest {
         @DisplayName("현재 시간이 시작 시간 전이면 READY 상태를 반환한다.")
         void calculateStatus_returnsReady_whenBeforeStartAt() {
             // given
-            Coupon coupon = Coupon.create("발급 대기 쿠폰", 100, now.plusDays(1), now.plusDays(2));
+            Coupon coupon = Coupon.create("브랜드명", "발급 대기 쿠폰", "요약 설명", "상세 설명", 100, now.plusDays(1), now.plusDays(2));
 
             // when
             CouponStatus status = coupon.calculateStatus(now);
@@ -35,7 +35,7 @@ class CouponTest {
         @DisplayName("발급 기간 내이고 수량이 남았으면 ISSUING 상태를 반환한다.")
         void calculateStatus_returnsIssuing_whenWithinPeriodAndHasQuantity() {
             // given
-            Coupon coupon = Coupon.create("발급 중인 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "발급 중인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
 
             // when
             CouponStatus status = coupon.calculateStatus(now);
@@ -48,7 +48,7 @@ class CouponTest {
         @DisplayName("수량이 모두 소진되면 EXHAUSTED 상태를 반환한다.")
         void calculateStatus_returnsExhausted_whenSoldOut() {
             // given
-            Coupon coupon = Coupon.create("소진된 쿠폰", 100, 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "소진된 쿠폰", "요약 설명", "상세 설명", 100, 100, now.minusDays(1), now.plusDays(1));
 
             // when
             CouponStatus status = coupon.calculateStatus(now);
@@ -61,7 +61,7 @@ class CouponTest {
         @DisplayName("종료 시간이 지나면 EXPIRED 상태를 반환한다.")
         void calculateStatus_returnsExpired_whenAfterEndAt() {
             // given
-            Coupon coupon = Coupon.create("만료된 쿠폰", 100, now.minusDays(2), now.minusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "만료된 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(2), now.minusDays(1));
 
             // when
             CouponStatus status = coupon.calculateStatus(now);
@@ -79,7 +79,7 @@ class CouponTest {
         @DisplayName("정상 조건에서 발급 시 발급 수량이 1 증가한다.")
         void issue_increasesIssuedQuantity_whenConditionsAreMet() {
             // given
-            Coupon coupon = Coupon.create("발급 중인 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "발급 중인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
             int initialQuantity = coupon.getIssuedQuantity();
 
             // when
@@ -93,7 +93,7 @@ class CouponTest {
         @DisplayName("수량이 소진된 쿠폰을 발급하면 COUPON_EXHAUSTED 예외를 던진다.")
         void issue_throwsBusinessException_whenCouponIsExhausted() {
             // given
-            Coupon coupon = Coupon.create("소진된 쿠폰", 100, 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "소진된 쿠폰", "요약 설명", "상세 설명", 100, 100, now.minusDays(1), now.plusDays(1));
 
             // when & then
             assertThatThrownBy(() -> coupon.issue(now))
@@ -105,7 +105,7 @@ class CouponTest {
         @DisplayName("발급 기간이 아닌 쿠폰을 발급하면 COUPON_NOT_AVAILABLE_PERIOD 예외를 던진다.")
         void issue_throwsBusinessException_whenOutsideOfPeriod() {
             // given
-            Coupon coupon = Coupon.create("할인 쿠폰", 100, now.plusDays(1), now.plusDays(2));
+            Coupon coupon = Coupon.create("브랜드명", "할인 쿠폰", "요약 설명", "상세 설명", 100, now.plusDays(1), now.plusDays(2));
 
             // when & then
             assertThatThrownBy(() -> coupon.issue(now))
@@ -121,7 +121,7 @@ class CouponTest {
         @DisplayName("쿠폰을 중단 처리하면 상태가 DISABLED로 변경된다.")
         void disable_changesUseStatus_toDisabled_whenCalled() {
             // given
-            Coupon coupon = Coupon.create("할인 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.create("브랜드명", "할인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
 
             // when
             coupon.disable();
@@ -134,7 +134,7 @@ class CouponTest {
         @DisplayName("새로 생성된 쿠폰의 사용 상태는 AVAILABLE이다.")
         void getUseStatus_isAvailable_whenCouponIsNew() {
             // given
-            Coupon newCoupon = Coupon.create("새 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon newCoupon = Coupon.create("브랜드명", "새 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
 
             // when & then
             assertThat(newCoupon.getUseStatus()).isEqualTo(CouponUseStatus.AVAILABLE);
@@ -144,7 +144,7 @@ class CouponTest {
         @DisplayName("쿠폰이 중단 처리되면 사용 상태는 DISABLED이다.")
         void getUseStatus_isForbidden_whenCouponIsDisabled() {
             // given
-            Coupon disabledCoupon = Coupon.create("중단 쿠폰", 100, now.minusDays(1), now.plusDays(1));
+            Coupon disabledCoupon = Coupon.create("브랜드명", "중단 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
             disabledCoupon.disable();
 
             // when & then

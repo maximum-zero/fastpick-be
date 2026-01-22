@@ -9,13 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.maximum0.fastpickbe.auth.application.AuthService;
+import com.maximum0.fastpickbe.auth.ui.dto.AuthResponse;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
-import com.maximum0.fastpickbe.auth.ui.dto.TokenResponse;
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
+import com.maximum0.fastpickbe.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import org.mockito.Mockito;
 
 @DisplayName("AuthController 단위 테스트")
 class AuthControllerTest extends BaseRestDocsTest {
+
     private final AuthService authService = Mockito.mock(AuthService.class);
 
     @Override
@@ -39,13 +41,25 @@ class AuthControllerTest extends BaseRestDocsTest {
         void signUp_returnsUserId_whenRequestIsValid() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
-            given(authService.signUp(any())).willReturn(1L);
+
+            User newUser = User.forTest(1L, "test@test.com", "password123", "테스터");
+            String accessToken = "access-token";
+            String refreshToken = "refresh-token";
+            String grantType = "Bearer";
+
+            AuthResponse authResponse = AuthResponse.of(accessToken, refreshToken, grantType, newUser);
+            given(authService.signUp(any())).willReturn(authResponse);
 
             // when & then
             mockMvc.perform(postRequest("/api/v1/auth/signup", request))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
-                    .andExpect(jsonPath("$.data").value(1))
+                    .andExpect(jsonPath("$.data.accessToken").value(accessToken))
+                    .andExpect(jsonPath("$.data.refreshToken").value(refreshToken))
+                    .andExpect(jsonPath("$.data.grantType").value(grantType))
+                    .andExpect(jsonPath("$.data.user.id").value(newUser.getId()))
+                    .andExpect(jsonPath("$.data.user.email").value(newUser.getEmail()))
+                    .andExpect(jsonPath("$.data.user.name").value(newUser.getName()))
                     .andDo(restDocument("auth/signup",
                             requestFields(
                                     fieldWithPath("email").description("이메일"),
@@ -53,7 +67,12 @@ class AuthControllerTest extends BaseRestDocsTest {
                                     fieldWithPath("name").description("이름 (2~10자)")
                             ),
                             responseFields(successFields(
-                                    fieldWithPath("data").description("생성된 유저 식별자")
+                                    fieldWithPath("data.accessToken").description("Access 토큰"),
+                                    fieldWithPath("data.refreshToken").description("Refresh 토큰"),
+                                    fieldWithPath("data.grantType").description("인증 타입"),
+                                    fieldWithPath("data.user.id").description("유저 식별자"),
+                                    fieldWithPath("data.user.email").description("유저 이메일"),
+                                    fieldWithPath("data.user.name").description("유저 이름")
                             ))
                     ));
         }
@@ -102,12 +121,13 @@ class AuthControllerTest extends BaseRestDocsTest {
         void login_returnsTokenResponse_whenCredentialsAreValid() throws Exception {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "password123");
+            User user = User.forTest(1L, "test@test.com", "password123", "테스터");
             String accessToken = "access-token";
             String refreshToken = "refresh-token";
             String grantType = "Bearer";
 
-            TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken, grantType);
-            given(authService.login(any())).willReturn(tokenResponse);
+            AuthResponse authResponse = AuthResponse.of(accessToken, refreshToken, grantType, user);
+            given(authService.login(any())).willReturn(authResponse);
 
             // when & then
             mockMvc.perform(postRequest("/api/v1/auth/login", request))
@@ -116,6 +136,9 @@ class AuthControllerTest extends BaseRestDocsTest {
                     .andExpect(jsonPath("$.data.accessToken").value(accessToken))
                     .andExpect(jsonPath("$.data.refreshToken").value(refreshToken))
                     .andExpect(jsonPath("$.data.grantType").value(grantType))
+                    .andExpect(jsonPath("$.data.user.id").value(user.getId()))
+                    .andExpect(jsonPath("$.data.user.email").value(user.getEmail()))
+                    .andExpect(jsonPath("$.data.user.name").value(user.getName()))
                     .andDo(restDocument("auth/login",
                             requestFields(
                                     fieldWithPath("email").description("이메일"),
@@ -124,7 +147,10 @@ class AuthControllerTest extends BaseRestDocsTest {
                             responseFields(successFields(
                                     fieldWithPath("data.accessToken").description("Access 토큰"),
                                     fieldWithPath("data.refreshToken").description("Refresh 토큰"),
-                                    fieldWithPath("data.grantType").description("인증 타입")
+                                    fieldWithPath("data.grantType").description("인증 타입"),
+                                    fieldWithPath("data.user.id").description("유저 식별자"),
+                                    fieldWithPath("data.user.email").description("유저 이메일"),
+                                    fieldWithPath("data.user.name").description("유저 이름")
                             ))
                     ));
         }

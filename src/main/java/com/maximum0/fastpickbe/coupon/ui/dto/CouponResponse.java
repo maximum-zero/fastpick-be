@@ -9,7 +9,9 @@ import lombok.Builder;
 @Builder
 public record CouponResponse(
         Long id,
+        String brand,
         String title,
+        String description,
         int totalQuantity,
         int issuedQuantity,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -21,7 +23,9 @@ public record CouponResponse(
     public static CouponResponse from(Coupon coupon, LocalDateTime now) {
         return CouponResponse.builder()
                 .id(coupon.getId())
+                .brand(coupon.getBrand())
                 .title(coupon.getTitle())
+                .description(coupon.getDescription())
                 .totalQuantity(coupon.getTotalQuantity())
                 .issuedQuantity(coupon.getIssuedQuantity())
                 .startAt(coupon.getStartAt())

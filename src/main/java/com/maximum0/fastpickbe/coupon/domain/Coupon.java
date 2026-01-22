@@ -27,14 +27,26 @@ public class Coupon extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 200, nullable = false)
+    @Column(length = 30, nullable = false)
+    private String brand;
+
+    @Column(length = 50, nullable = false)
     private String title;
+
+    @Column(length = 100)
+    private String summary;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Column(nullable = false)
     private int totalQuantity;
 
     @Column(nullable = false)
     private int issuedQuantity;
+
+    @Column(nullable = false)
+    private int limitPerUser;
 
     @Column(nullable = false)
     private LocalDateTime startAt;
@@ -47,20 +59,27 @@ public class Coupon extends BaseEntity {
     private CouponUseStatus useStatus;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Coupon(Long id, String title, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public Coupon(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         this.id = id;
+        this.brand = brand;
         this.title = title;
+        this.summary = summary;
+        this.description = description;
         this.totalQuantity = totalQuantity;
         this.issuedQuantity = issuedQuantity;
+        this.limitPerUser = 1;
         this.startAt = startAt;
         this.endAt = endAt;
         this.useStatus = CouponUseStatus.AVAILABLE;
     }
 
     // --- 정적 팩토리 메서드 ---
-    public static Coupon create(String title, int totalQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public static Coupon create(String brand, String title, String summary, String description, int totalQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         return Coupon.builder()
+                .brand(brand)
                 .title(title)
+                .summary(summary)
+                .description(description)
                 .totalQuantity(totalQuantity)
                 .issuedQuantity(0)
                 .startAt(startAt)
@@ -68,9 +87,12 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
-    public static Coupon create(String title, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public static Coupon create(String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         return Coupon.builder()
+                .brand(brand)
                 .title(title)
+                .summary(summary)
+                .description(description)
                 .totalQuantity(totalQuantity)
                 .issuedQuantity(issuedQuantity)
                 .startAt(startAt)
@@ -78,10 +100,13 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
-    public static Coupon forTest(Long id, String title, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public static Coupon forTest(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         return Coupon.builder()
                 .id(id)
+                .brand(brand)
                 .title(title)
+                .summary(summary)
+                .description(description)
                 .totalQuantity(totalQuantity)
                 .issuedQuantity(issuedQuantity)
                 .startAt(startAt)
