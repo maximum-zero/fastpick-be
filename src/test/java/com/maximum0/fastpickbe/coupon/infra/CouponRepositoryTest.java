@@ -5,10 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
-import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
-import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -87,42 +83,35 @@ class CouponRepositoryTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 목록 필터링 테스트")
-    class FindAllByFilterTest {
+    @DisplayName("쿠폰 목록 식별자 조회 테스트")
+    class FindAllByIdsTest {
 
         @Test
-        @DisplayName("발급 중(ISSUING) 필터 적용 시 조건에 맞는 쿠폰만 반환한다")
-        void findAll_returnsOnlyIssuingCoupons_whenFilterTypeIsIssuing() {
+        @DisplayName("식별자 목록이 주어지면 해당하는 모든 쿠폰 엔티티를 반환한다")
+        void findAllByIds_ReturnsCoupons_WhenIdsAreProvided() {
             // given
-            couponRepository.save(Coupon.create("브랜드", "발급 중", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
-            couponRepository.save(Coupon.create("브랜드", "발급 대기", "요약 설명", "상세 설명", 100, now.plusDays(1), now.plusDays(2)));
-            couponRepository.save(Coupon.create("브랜드", "만료", "요약 설명", "상세 설명", 100, now.minusDays(2), now.minusDays(1)));
-
-            CouponListRequest request = new CouponListRequest(null, CouponFilterType.ISSUING);
+            Coupon coupon1 = couponRepository.save(Coupon.create("나이키", "쿠폰1", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
+            Coupon coupon2 = couponRepository.save(Coupon.create("아디다스", "쿠폰2", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
+            List<Long> targetIds = List.of(coupon1.getId(), coupon2.getId());
 
             // when
-            Page<CouponSummaryResponse> result = couponRepository.findAll(request, PageRequest.of(0, 10), now);
+            List<Coupon> result = couponRepository.findAllByIds(targetIds);
 
             // then
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).title()).isEqualTo("발급 중");
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting(Coupon::getId)
+                    .containsExactlyInAnyOrder(coupon1.getId(), coupon2.getId());
         }
 
         @Test
-        @DisplayName("제목 검색 조건이 있으면 해당 키워드가 포함된 쿠폰만 반환한다")
-        void findAll_returnsFilteredCoupons_whenTitleKeywordProvided() {
-            // given
-            couponRepository.save(Coupon.create("브랜드", "여름 할인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
-            couponRepository.save(Coupon.create("브랜드", "겨울 할인 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
-
-            CouponListRequest request = new CouponListRequest("여름", CouponFilterType.ALL);
-
+        @DisplayName("빈 식별자 목록이 주어지면 빈 리스트를 반환한다")
+        void findAllByIds_ReturnsEmptyList_WhenIdsAreEmpty() {
             // when
-            Page<CouponSummaryResponse> result = couponRepository.findAll(request, PageRequest.of(0, 10), now);
+            List<Coupon> result = couponRepository.findAllByIds(List.of());
 
             // then
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).title()).contains("여름");
+            assertThat(result).isEmpty();
         }
     }
+
 }
