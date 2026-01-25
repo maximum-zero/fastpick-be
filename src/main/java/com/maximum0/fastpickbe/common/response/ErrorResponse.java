@@ -26,7 +26,7 @@ public record ErrorResponse(
                         error.getRejectedValue();
                         return new FieldError(
                                 error.getField(),
-                                error.getRejectedValue().toString(),
+                                error.getRejectedValue() == null ? "" : error.getRejectedValue().toString(),
                                 error.getDefaultMessage());
                     })
                     .toList();
