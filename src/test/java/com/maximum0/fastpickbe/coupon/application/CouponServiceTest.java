@@ -5,13 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
+import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
-import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponResponse;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
@@ -30,7 +31,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -43,9 +43,12 @@ class CouponServiceTest {
     private CouponRepository couponRepository;
 
     @Mock
+    private CouponKeywordRepository couponKeywordRepository;
+
+    @Mock
     private Clock clock;
 
-    private final LocalDateTime now = LocalDateTime.of(2026, 1, 17, 10, 0);
+    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
     private final Instant fixedInstant = now.atZone(ZoneId.systemDefault()).toInstant();
 
     @BeforeEach
@@ -58,35 +61,55 @@ class CouponServiceTest {
     @DisplayName("쿠폰 목록 조회 테스트")
     class GetCouponsTest {
         @Test
-        @DisplayName("목록 조회 시 현재 시간을 기준으로 리포지토리를 호출하고, 결과를 DTO로 변환한다")
+        @DisplayName("검색 조건이 주어지면 키워드 인덱스에서 ID를 추출하고 본체를 조회하여 정렬된 결과를 반환한다")
         void getCoupons_returnsCouponSummaries_whenCalledWithValidRequest() {
             // given
             CouponListRequest request = new CouponListRequest(null, CouponFilterType.ALL);
             Pageable pageable = PageRequest.of(0, 10);
+            List<Long> couponIds = List.of(1L, 2L);
 
-            CouponSummaryResponse summary = new CouponSummaryResponse(
-                    1L,
-                    "브랜드",
-                    "발급 중 쿠폰",
-                    "요약 설명",
-                    100,
-                    50,
-                    now.minusDays(1),
-                    now.plusDays(1),
-                    CouponStatus.ISSUING
-            );
-            Page<CouponSummaryResponse> mockPage = new PageImpl<>(List.of(summary), pageable, 1);
+            Coupon coupon1 = Coupon.forTest(1L, "나이키", "나이키 1", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon2 = Coupon.forTest(2L, "나이키", "나이키 2", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
 
-            given(couponRepository.findAll(eq(request), eq(pageable), eq(now)))
-                    .willReturn(mockPage);
+            given(couponKeywordRepository.countByCondition(eq(request), eq(now)))
+                    .willReturn(2L);
+
+            given(couponKeywordRepository.findIdsByCondition(eq(request), eq(pageable), eq(now)))
+                    .willReturn(couponIds);
+
+            given(couponRepository.findAllByIds(couponIds))
+                    .willReturn(List.of(coupon2, coupon1));
 
             // when
             Page<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
 
             // then
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).title()).isEqualTo("발급 중 쿠폰");
-            verify(couponRepository).findAll(eq(request), eq(pageable), eq(now));
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0).id()).isEqualTo(1L);
+            assertThat(result.getContent().get(1).id()).isEqualTo(2L);
+
+            verify(couponKeywordRepository).countByCondition(request, now);
+            verify(couponKeywordRepository).findIdsByCondition(request, pageable, now);
+            verify(couponRepository).findAllByIds(couponIds);
+        }
+
+        @Test
+        @DisplayName("검색 결과가 없는 경우 빈 페이지를 반환하고 본체 조회를 수행하지 않는다")
+        void getCoupons_ReturnsEmptyPage_WhenNoResultsFound() {
+            // given
+            CouponListRequest request = new CouponListRequest("없는쿠폰", CouponFilterType.ALL);
+            Pageable pageable = PageRequest.of(0, 10);
+
+            given(couponKeywordRepository.countByCondition(eq(request), eq(now)))
+                    .willReturn(0L);
+
+            // when
+            Page<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
+
+            // then
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+            verifyNoInteractions(couponRepository);
         }
     }
 

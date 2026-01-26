@@ -91,3 +91,20 @@ operation::coupon-issue/fail-exhausted[snippets='response-body']
 
 ==== [성공 사례]
 operation::my-coupons/list[snippets='http-request,request-headers,query-parameters,response-body,response-fields']
+
+
+[[Admin-Coupon-API]]
+== 🛠️ 관리자 쿠폰 API (Admin Coupon)
+
+관리자 권한으로 쿠폰을 생성하고 인덱싱 상태를 관리합니다.
+
+=== 쿠폰 생성
+새로운 쿠폰 본체를 등록하고, 자동으로 검색용 키워드 인덱스를 생성합니다.
+
+==== [성공 사례]
+// 🥊 우리가 방금 만든 admin/coupon/create 스니펫 연결
+operation::admin/coupon/create[snippets='http-request,request-fields,response-headers,response-body,response-fields']
+
+==== [실패 사례 - 필수값 누락]
+// 🥊 NPE 잡고 성공시킨 실패 케이스 스니펫 연결
+operation::admin/coupon/create-fail[snippets='response-body']

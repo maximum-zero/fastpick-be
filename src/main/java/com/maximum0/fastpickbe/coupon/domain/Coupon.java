@@ -30,10 +30,10 @@ public class Coupon extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String brand;
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(length = 100)
+    @Column(length = 200)
     private String summary;
 
     @Column(columnDefinition = "TEXT")
@@ -47,6 +47,9 @@ public class Coupon extends BaseEntity {
 
     @Column(nullable = false)
     private int limitPerUser;
+
+    @Column(nullable = false)
+    private boolean isSoldOut;
 
     @Column(nullable = false)
     private LocalDateTime startAt;
@@ -68,6 +71,7 @@ public class Coupon extends BaseEntity {
         this.totalQuantity = totalQuantity;
         this.issuedQuantity = issuedQuantity;
         this.limitPerUser = 1;
+        this.isSoldOut = false;
         this.startAt = startAt;
         this.endAt = endAt;
         this.useStatus = CouponUseStatus.AVAILABLE;
@@ -182,6 +186,10 @@ public class Coupon extends BaseEntity {
     public void issue(LocalDateTime now) {
         validateIssuanceCondition(now);
         this.issuedQuantity++;
+
+        if (isExhausted()) {
+            this.isSoldOut = true;
+        }
     }
 
     /**
