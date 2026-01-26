@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
         indexes = {
                 @Index(
                         name = "idx_coupon_keyword_composite",
-                        columnList = "createdAt DESC, keyword, use_status"
+                        columnList = "keyword, couponId DESC"
                 )
         }
 )
