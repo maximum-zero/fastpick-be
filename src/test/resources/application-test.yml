@@ -2,6 +2,9 @@ spring:
   datasource:
     url: jdbc:tc:postgresql:16-alpine:///testdb
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
