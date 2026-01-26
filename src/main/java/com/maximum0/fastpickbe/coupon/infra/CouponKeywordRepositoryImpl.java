@@ -48,10 +48,9 @@ public class CouponKeywordRepositoryImpl implements CouponKeywordRepository {
                         filterTypeEq(request.filterType(), now),
                         couponKeyword.useStatus.eq(CouponUseStatus.AVAILABLE.name())
                 )
-                .orderBy(couponKeyword.createdAt.desc())
+                .orderBy(couponKeyword.couponId.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(couponKeyword.createdAt.desc())
                 .fetch();
     }
 
