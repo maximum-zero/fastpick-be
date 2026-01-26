@@ -1,13 +1,18 @@
 package com.maximum0.fastpickbe.coupon.infra;
 
+import static com.maximum0.fastpickbe.coupon.domain.CouponExpressions.buildCouponStatus;
+import static com.maximum0.fastpickbe.coupon.domain.QCoupon.coupon;
 import static com.maximum0.fastpickbe.coupon.domain.QCouponKeyword.couponKeyword;
 import static io.jsonwebtoken.lang.Strings.hasText;
 
+import com.maximum0.fastpickbe.coupon.domain.CouponExpressions;
 import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeyword;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
+import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -39,16 +44,27 @@ public class CouponKeywordRepositoryImpl implements CouponKeywordRepository {
      * @return 검색 조건에 부합하는 쿠폰 식별자 리스트
      */
     @Override
-    public List<Long> findIdsByCondition(CouponListRequest request, Pageable pageable, LocalDateTime now) {
+    public List<CouponSummaryResponse> findAllByCondition(CouponListRequest request, Pageable pageable, LocalDateTime now) {
         return queryFactory
-                .select(couponKeyword.couponId)
+                .select(Projections.constructor(CouponSummaryResponse.class,
+                        coupon.id,
+                        coupon.brand,
+                        coupon.title,
+                        coupon.summary,
+                        coupon.totalQuantity,
+                        coupon.issuedQuantity,
+                        coupon.startAt,
+                        coupon.endAt,
+                        buildCouponStatus(now)
+                ))
                 .from(couponKeyword)
+                .innerJoin(coupon).on(couponKeyword.couponId.eq(coupon.id))
                 .where(
                         keywordStartsWith(request.search()),
                         filterTypeEq(request.filterType(), now),
-                        couponKeyword.useStatus.eq(CouponUseStatus.AVAILABLE.name())
+                        coupon.useStatus.eq(CouponUseStatus.AVAILABLE)
                 )
-                .orderBy(couponKeyword.couponId.desc())
+                .orderBy(coupon.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -65,10 +81,11 @@ public class CouponKeywordRepositoryImpl implements CouponKeywordRepository {
         return queryFactory
                 .select(couponKeyword.count())
                 .from(couponKeyword)
+                .innerJoin(coupon).on(couponKeyword.couponId.eq(coupon.id))
                 .where(
                         keywordStartsWith(request.search()),
                         filterTypeEq(request.filterType(), now),
-                        couponKeyword.useStatus.eq(CouponUseStatus.AVAILABLE.name())
+                        coupon.useStatus.eq(CouponUseStatus.AVAILABLE)
                 )
                 .fetchOne();
     }
@@ -88,12 +105,10 @@ public class CouponKeywordRepositoryImpl implements CouponKeywordRepository {
 
         return switch (filterType) {
             case ALL -> null;
-            case READY -> couponKeyword.startAt.after(now);
-            case ISSUING -> couponKeyword.startAt.loe(now)
-                    .and(couponKeyword.endAt.after(now))
-                    .and(couponKeyword.isSoldOut.isFalse());
-            case CLOSED -> couponKeyword.endAt.loe(now)
-                    .or(couponKeyword.isSoldOut.isTrue());
+            case READY -> CouponExpressions.isReady(now);
+            case ISSUING -> CouponExpressions.isIssuing(now);
+            case CLOSED -> CouponExpressions.isExpired(now)
+                    .or(CouponExpressions.isExhausted());
         };
     }
 }

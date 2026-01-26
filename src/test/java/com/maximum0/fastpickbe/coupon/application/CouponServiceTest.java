@@ -13,6 +13,7 @@ import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
+import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponResponse;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
@@ -68,17 +69,14 @@ class CouponServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             List<Long> couponIds = List.of(1L, 2L);
 
-            Coupon coupon1 = Coupon.forTest(1L, "나이키", "나이키 1", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
-            Coupon coupon2 = Coupon.forTest(2L, "나이키", "나이키 2", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
+            CouponSummaryResponse response1 = new CouponSummaryResponse(1L, "나이키", "나이키 1", "요약", 100, 0, now, now.plusDays(1), CouponStatus.ISSUING.name());
+            CouponSummaryResponse response2 = new CouponSummaryResponse(2L, "아디다스", "아디다스 1", "요약", 100, 0, now, now.plusDays(1), CouponStatus.ISSUING.name());
 
-            given(couponKeywordRepository.countByCondition(eq(request), eq(now)))
+            given(couponKeywordRepository.countByCondition(request, now))
                     .willReturn(2L);
 
-            given(couponKeywordRepository.findIdsByCondition(eq(request), eq(pageable), eq(now)))
-                    .willReturn(couponIds);
-
-            given(couponRepository.findAllByIds(couponIds))
-                    .willReturn(List.of(coupon2, coupon1));
+            given(couponKeywordRepository.findAllByCondition(request, pageable, now))
+                    .willReturn(List.of(response1, response2));
 
             // when
             Page<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
@@ -89,8 +87,7 @@ class CouponServiceTest {
             assertThat(result.getContent().get(1).id()).isEqualTo(2L);
 
             verify(couponKeywordRepository).countByCondition(request, now);
-            verify(couponKeywordRepository).findIdsByCondition(request, pageable, now);
-            verify(couponRepository).findAllByIds(couponIds);
+            verify(couponKeywordRepository).findAllByCondition(request, pageable, now);
         }
 
         @Test

@@ -51,7 +51,7 @@ class CouponControllerTest extends BaseRestDocsTest {
                     .title("할인 쿠폰")
                     .startAt(now.minusDays(1))
                     .endAt(now.plusDays(1))
-                    .status(CouponStatus.ISSUING)
+                    .status(CouponStatus.ISSUING.name())
                     .build();
 
             given(couponService.getCoupons(any(), any()))
