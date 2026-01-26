@@ -37,48 +37,23 @@ public class CouponKeyword extends BaseCreateEntity {
     @Column(nullable = false, length = 100)
     private String keyword;
 
-    @Column(nullable = false)
-    private boolean isSoldOut = false;
-
-    @Column(nullable = false)
-    private LocalDateTime startAt;
-
-    @Column(nullable = false)
-    private LocalDateTime endAt;
-
-    @Column(name = "use_status", length = 20)
-    private String useStatus;
-
     @Builder(access = AccessLevel.PRIVATE)
-    private CouponKeyword(Long couponId, String keyword, boolean isSoldOut,
-            LocalDateTime startAt, LocalDateTime endAt, String useStatus) {
+    private CouponKeyword(Long couponId, String keyword) {
         this.couponId = couponId;
         this.keyword = keyword;
-        this.isSoldOut = isSoldOut;
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.useStatus = useStatus;
     }
 
     public static CouponKeyword create(Coupon coupon, String keyword) {
         return CouponKeyword.builder()
                 .couponId(coupon.getId())
                 .keyword(keyword)
-                .isSoldOut(coupon.isSoldOut())
-                .startAt(coupon.getStartAt())
-                .endAt(coupon.getEndAt())
-                .useStatus(coupon.getUseStatus().name())
                 .build();
     }
 
-    public static CouponKeyword forTest(Long couponId, String keyword, String useStatus, LocalDateTime startAt, LocalDateTime endAt, boolean isSoldOut) {
+    public static CouponKeyword forTest(Long couponId, String keyword) {
         return CouponKeyword.builder()
                 .couponId(couponId)
                 .keyword(keyword)
-                .useStatus(useStatus)
-                .startAt(startAt)
-                .endAt(endAt)
-                .isSoldOut(isSoldOut)
                 .build();
     }
 

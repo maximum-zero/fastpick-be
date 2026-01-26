@@ -8,6 +8,7 @@ import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeyword;
 import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
 import jakarta.persistence.EntityManager;
@@ -46,19 +47,19 @@ class CouponKeywordRepositoryTest {
         @BeforeEach
         void setUp() {
             // ISSUING: 진행 중인 나이키 쿠폰
-            saveCouponData("나이키1", "AVAILABLE", now.minusDays(1), now.plusDays(1), 100, 0, false);
+            saveCouponData("나이키1", now.minusDays(1), now.plusDays(1), 100, 0, CouponUseStatus.AVAILABLE);
 
             // READY: 내일부터 시작하는 나이키 쿠폰
-            saveCouponData("나이키2", "AVAILABLE", now.plusDays(1), now.plusDays(2), 100, 0, false);
+            saveCouponData("나이키2", now.plusDays(1), now.plusDays(2), 100, 0, CouponUseStatus.AVAILABLE);
 
             // EXPIRED: 이미 종료된 나이키 쿠폰
-            saveCouponData("나이키3", "AVAILABLE", now.minusDays(2), now.minusDays(1), 100, 0, false);
+            saveCouponData("나이키3", now.minusDays(2), now.minusDays(1), 100, 0, CouponUseStatus.AVAILABLE);
 
             // EXHAUSTED: 진행 중이지만 품절된 나이키 쿠폰
-            saveCouponData("나이키4", "AVAILABLE", now.minusDays(1), now.plusDays(1), 100, 100, true);
+            saveCouponData("나이키4", now.minusDays(1), now.plusDays(1), 100, 100, CouponUseStatus.AVAILABLE);
 
             // DISABLED: 비활성화된 나이키 쿠폰
-            saveCouponData("나이키5", "DISABLED", now.minusDays(1), now.plusDays(1), 100, 0, false);
+            saveCouponData("나이키5", now.minusDays(1), now.plusDays(1), 100, 0, CouponUseStatus.DISABLED);
 
             em.flush();
             em.clear();
@@ -115,11 +116,11 @@ class CouponKeywordRepositoryTest {
         @BeforeEach
         void setUp() {
             // 현재 시작하는 쿠폰
-            saveCouponData("나이키", "AVAILABLE", now, now.plusDays(1), 100, 0, false);
+            saveCouponData("나이키", now, now.plusDays(1), 100, 0, CouponUseStatus.AVAILABLE);
             // 현재 끝나는 쿠폰
-            saveCouponData("나이키", "AVAILABLE", now.minusDays(1), now, 100, 0, false);
+            saveCouponData("나이키", now.minusDays(1), now, 100, 0, CouponUseStatus.AVAILABLE);
             // 다른 브랜드 쿠폰
-            saveCouponData("아디다스", "AVAILABLE", now.minusDays(1), now.plusDays(1), 100, 0, false);
+            saveCouponData("아디다스", now.minusDays(1), now.plusDays(1), 100, 0, CouponUseStatus.AVAILABLE);
         }
 
         @Test
@@ -152,11 +153,11 @@ class CouponKeywordRepositoryTest {
     }
 
 
-    private void saveCouponData(String brand, String useStatus, LocalDateTime start, LocalDateTime end, int totalQuantity, int issuedQuantity, boolean isSoldOut) {
-        Coupon coupon = Coupon.forTest(null, brand, brand + " 제목", "요약 설명", "상세 설명", totalQuantity, issuedQuantity, start, end);
+    private void saveCouponData(String brand, LocalDateTime start, LocalDateTime end, int totalQuantity, int issuedQuantity, CouponUseStatus useStatus) {
+        Coupon coupon = Coupon.forTest(null, brand, brand + " 제목", "요약 설명", "상세 설명", totalQuantity, issuedQuantity, start, end, useStatus);
         em.persist(coupon);
 
-        CouponKeyword couponKeyword = CouponKeyword.forTest(coupon.getId(), brand, useStatus, start, end, isSoldOut);
+        CouponKeyword couponKeyword = CouponKeyword.forTest(coupon.getId(), brand);
         em.persist(couponKeyword);
     }
 }

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
+import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +57,8 @@ class CouponAdminServiceTest {
                     100,
                     0,
                     now,
-                    now.plusDays(7)
+                    now.plusDays(7),
+                    CouponUseStatus.AVAILABLE
             );
 
             given(couponRepository.save(any(Coupon.class))).willReturn(coupon);

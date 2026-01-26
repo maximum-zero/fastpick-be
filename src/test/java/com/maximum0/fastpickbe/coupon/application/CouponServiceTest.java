@@ -14,6 +14,7 @@ import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponResponse;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
@@ -120,7 +121,7 @@ class CouponServiceTest {
             // given
             Long couponId = 1L;
             String title = "테스트 쿠폰";
-            Coupon coupon = Coupon.forTest(couponId, "브랜드명", title, "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = Coupon.forTest(couponId, "브랜드명", title, "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1), CouponUseStatus.AVAILABLE);
             given(couponRepository.findActiveById(couponId)).willReturn(Optional.of(coupon));
 
             // when

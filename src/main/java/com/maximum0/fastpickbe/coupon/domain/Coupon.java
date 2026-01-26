@@ -62,7 +62,7 @@ public class Coupon extends BaseEntity {
     private CouponUseStatus useStatus;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Coupon(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public Coupon(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt, CouponUseStatus useStatus) {
         this.id = id;
         this.brand = brand;
         this.title = title;
@@ -74,7 +74,7 @@ public class Coupon extends BaseEntity {
         this.isSoldOut = false;
         this.startAt = startAt;
         this.endAt = endAt;
-        this.useStatus = CouponUseStatus.AVAILABLE;
+        this.useStatus = useStatus;
     }
 
     // --- 정적 팩토리 메서드 ---
@@ -88,6 +88,7 @@ public class Coupon extends BaseEntity {
                 .issuedQuantity(0)
                 .startAt(startAt)
                 .endAt(endAt)
+                .useStatus(CouponUseStatus.AVAILABLE)
                 .build();
     }
 
@@ -101,10 +102,11 @@ public class Coupon extends BaseEntity {
                 .issuedQuantity(issuedQuantity)
                 .startAt(startAt)
                 .endAt(endAt)
+                .useStatus(CouponUseStatus.AVAILABLE)
                 .build();
     }
 
-    public static Coupon forTest(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
+    public static Coupon forTest(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt, CouponUseStatus useStatus) {
         return Coupon.builder()
                 .id(id)
                 .brand(brand)
@@ -115,6 +117,7 @@ public class Coupon extends BaseEntity {
                 .issuedQuantity(issuedQuantity)
                 .startAt(startAt)
                 .endAt(endAt)
+                .useStatus(useStatus)
                 .build();
     }
 
