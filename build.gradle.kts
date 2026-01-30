@@ -38,6 +38,7 @@ dependencies {
     // DB & Persistence
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.redisson:redisson-spring-boot-starter:3.24.3")
     runtimeOnly("org.postgresql:postgresql")
 
     // Lombok

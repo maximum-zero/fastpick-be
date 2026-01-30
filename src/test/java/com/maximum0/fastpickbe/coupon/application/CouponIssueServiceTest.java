@@ -3,23 +3,21 @@ package com.maximum0.fastpickbe.coupon.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
-import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
-import com.maximum0.fastpickbe.coupon.domain.IssuedCoupon;
-import com.maximum0.fastpickbe.coupon.domain.IssuedCouponRepository;
 import com.maximum0.fastpickbe.user.domain.User;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,86 +26,79 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Coupon Issue Service 단위 테스트")
 class CouponIssueServiceTest {
     @InjectMocks
     private CouponIssueService couponIssueService;
+
     @Mock
-    private CouponRepository couponRepository;
+    private RedissonClient redissonClient;
+
     @Mock
-    private IssuedCouponRepository issuedCouponRepository;
+    private CouponIssueExecutor couponIssueExecutor;
 
     @Mock
     private Clock clock;
 
-    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 1, 0);
+    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
     private final Instant fixedInstant = now.atZone(ZoneId.systemDefault()).toInstant();
+    private User testUser;
 
     @BeforeEach
     void setUp() {
+        Instant fixedInstant = now.atZone(ZoneId.systemDefault()).toInstant();
         given(clock.instant()).willReturn(fixedInstant);
         given(clock.getZone()).willReturn(ZoneId.systemDefault());
+
+        testUser = User.forTest(1L, "test@test.com", "password", "user");
     }
 
     @Nested
     @DisplayName("쿠폰 발급 테스트")
     class IssueCouponTest {
         @Test
-        @DisplayName("모든 발급 조건이 충족되면 쿠폰을 정상적으로 발급한다")
-        void issue_succeeds_whenConditionsAreMet() {
+        @DisplayName("락 획득에 성공하면 Executor를 통해 발급을 수행한다")
+        void issue_LockAcquired_Success() throws InterruptedException {
             // given
             Long couponId = 1L;
-            User user = User.forTest(1L, "test@test.com", "pw", "테스터");
-            Coupon coupon = Coupon.forTest(couponId, "브랜드명", "선착순 쿠폰", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1), CouponUseStatus.AVAILABLE);
+            RLock mockLock = mock(RLock.class);
 
-            IssuedCoupon mockSavedIssuedCoupon = mock(IssuedCoupon.class);
+            given(redissonClient.getLock(anyString())).willReturn(mockLock);
+            given(mockLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(true);
+            given(mockLock.isHeldByCurrentThread()).willReturn(true);
 
-            given(couponRepository.findByIdWithLock(couponId)).willReturn(Optional.of(coupon));
-            given(issuedCouponRepository.existsByUserAndCoupon(user, coupon)).willReturn(false);
-            given(issuedCouponRepository.save(any(IssuedCoupon.class))).willReturn(mockSavedIssuedCoupon);
-            given(mockSavedIssuedCoupon.getId()).willReturn(100L);
+            given(couponIssueExecutor.executeIssue(anyLong(), any(User.class), any()))
+                    .willReturn(100L);
 
             // when
-            Long issuedId = couponIssueService.issue(couponId, user);
+            Long issuedId = couponIssueService.issue(couponId, testUser);
 
             // then
             assertThat(issuedId).isEqualTo(100L);
-            assertThat(coupon.getIssuedQuantity()).isEqualTo(1);
-            verify(issuedCouponRepository).save(any(IssuedCoupon.class));
+            verify(couponIssueExecutor).executeIssue(anyLong(), any(User.class), any());
+            verify(mockLock).unlock();
         }
 
         @Test
-        @DisplayName("이미 발급받은 쿠폰이면 중복 발급 예외가 발생한다")
-        void issue_throwsBusinessException_whenCouponIsAlreadyIssued() {
+        @DisplayName("락 획득에 실패하면 CONCURRENCY_BUSY 예외를 던진다")
+        void issue_LockAcquisitionFails_ThrowsException() throws InterruptedException {
             // given
             Long couponId = 1L;
-            User user = User.forTest(1L, "test@test.com", "pw", "테스터");
-            Coupon coupon = Coupon.forTest(couponId, "브랜드명", "중복 쿠폰", "요약 설명", "상세 설명", 100, 0, now.minusDays(1), now.plusDays(1), CouponUseStatus.AVAILABLE);
+            RLock mockLock = mock(RLock.class);
 
-            given(couponRepository.findByIdWithLock(couponId)).willReturn(Optional.of(coupon));
-            given(issuedCouponRepository.existsByUserAndCoupon(user, coupon)).willReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> couponIssueService.issue(couponId, user))
-                    .isInstanceOf(BusinessException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_ISSUED_COUPON);
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 쿠폰을 발급하려 하면 예외가 발생한다")
-        void issue_throwsBusinessException_whenCouponNotFound() {
-            // given
-            Long couponId = 999L;
-            User user = User.forTest(1L, "test@test.com", "pw", "테스터");
-
-            given(couponRepository.findByIdWithLock(couponId)).willReturn(Optional.empty());
+            given(redissonClient.getLock(anyString())).willReturn(mockLock);
+            given(mockLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> couponIssueService.issue(couponId, user))
+            assertThatThrownBy(() -> couponIssueService.issue(couponId, testUser))
                     .isInstanceOf(BusinessException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COUPON_NOT_FOUND);
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CONCURRENCY_BUSY);
+
+            verifyNoInteractions(couponIssueExecutor);
         }
     }
 }

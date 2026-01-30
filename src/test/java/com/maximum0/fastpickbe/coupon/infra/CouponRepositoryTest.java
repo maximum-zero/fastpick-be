@@ -64,22 +64,6 @@ class CouponRepositoryTest {
             assertThat(found).isEmpty();
         }
 
-        @Test
-        @DisplayName("비관적 락을 적용하여 쿠폰을 조회할 수 있다")
-        void findByIdWithLock_returnsCoupon_withPessimisticLock() {
-            // given
-            Coupon coupon = Coupon.create("브랜드", "락 테스트 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
-            Coupon saved = couponRepository.save(coupon);
-
-            // when
-            Optional<Coupon> found = couponRepository.findByIdWithLock(saved.getId());
-
-            // then
-            assertThat(found).isPresent();
-            assertThat(found.get().getId()).isEqualTo(saved.getId());
-            assertThat(found.get().getTitle()).isEqualTo("락 테스트 쿠폰");
-            // 로그상에 'for no key update'가 포함되는지 확인
-        }
     }
 
     @Nested

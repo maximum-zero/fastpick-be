@@ -38,6 +38,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public User saveAndFlush(User user) {
+        return userJpaRepository.saveAndFlush(user);
+    }
+
+    @Override
     public void deleteAllInBatch() {
         userJpaRepository.deleteAllInBatch();
     }

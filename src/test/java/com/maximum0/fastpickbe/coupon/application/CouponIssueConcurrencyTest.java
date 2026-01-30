@@ -3,6 +3,7 @@ package com.maximum0.fastpickbe.coupon.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.maximum0.fastpickbe.base.BaseIntegrationTest;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
 import com.maximum0.fastpickbe.coupon.domain.IssuedCouponRepository;
@@ -22,20 +23,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "spring.data.redis.repositories.enabled=false",
-                "spring.cache.type=none"
-        }
-)
 @ActiveProfiles("test")
 @DisplayName("쿠폰 발급 동시성 테스트")
-class CouponIssueConcurrencyTest {
+class CouponIssueConcurrencyTest extends BaseIntegrationTest {
 
     @Autowired
     private CouponIssueService couponIssueService;

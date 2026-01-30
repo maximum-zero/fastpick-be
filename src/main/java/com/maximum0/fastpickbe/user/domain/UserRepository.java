@@ -10,5 +10,6 @@ public interface UserRepository {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
 
+    User saveAndFlush(User user);
     void deleteAllInBatch();
 }

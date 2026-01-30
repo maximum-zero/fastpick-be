@@ -25,7 +25,12 @@ public enum ErrorCode {
     COUPON_DISABLED(400, "CP02", "사용 중지된 쿠폰입니다."),
     COUPON_NOT_AVAILABLE_PERIOD(400, "CP03", "쿠폰 발급 기간이 아닙니다."),
     COUPON_EXHAUSTED(400, "CP04", "쿠폰 수량이 모두 소진되었습니다."),
-    ALREADY_ISSUED_COUPON(400, "CP05", "이미 발급받은 쿠폰입니다.");
+    ALREADY_ISSUED_COUPON(400, "CP05", "이미 발급받은 쿠폰입니다."),
+
+    // --- 시스템/동시성 제어
+    CONCURRENCY_BUSY(429, "S001", "현재 접속자가 많아 요청을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요."),
+    SYSTEM_LOCKING_ERROR(500, "S002", "요청 처리 중 시스템 오류가 발생했습니다.")
+    ;
 
     private final int status;
     private final String code;

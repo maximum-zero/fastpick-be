@@ -8,32 +8,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
+import com.maximum0.fastpickbe.base.BaseIntegrationTest;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "spring.data.redis.repositories.enabled=false",
-                "spring.cache.type=none"
-        }
-)
-@AutoConfigureMockMvc
 @Transactional
-@ActiveProfiles("test")
 @DisplayName("인증 도메인 통합 테스트")
-class AuthIntegrationTest {
-
+class AuthIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 

@@ -46,16 +46,6 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     /**
-     * 비관적 락을 적용하여 쿠폰 엔티티를 조회합니다.
-     * @param id 쿠폰 식별자
-     * @return 쿠폰 엔티티 (Optional)
-     */
-    @Override
-    public Optional<Coupon> findByIdWithLock(Long id) {
-        return jpaRepository.findByIdWithLock(id);
-    }
-
-    /**
      * 제공된 식별자 목록에 해당하는 모든 쿠폰 엔티티를 조회합니다.
      * @param ids 쿠폰 식별자 리스트
      * @return 조회된 쿠폰 엔티티 목록 (데이터가 없거나 ids가 비어있을 경우 빈 리스트 반환)
