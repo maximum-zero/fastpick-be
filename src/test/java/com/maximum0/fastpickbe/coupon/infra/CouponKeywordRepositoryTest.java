@@ -4,11 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
-import com.maximum0.fastpickbe.coupon.domain.CouponKeyword;
-import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
-import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.model.CouponKeyword;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponFilterType;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponUseStatus;
+import com.maximum0.fastpickbe.coupon.infra.repository.CouponKeywordRepositoryImpl;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
 import jakarta.persistence.EntityManager;

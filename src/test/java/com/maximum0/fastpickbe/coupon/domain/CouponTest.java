@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponUseStatus;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

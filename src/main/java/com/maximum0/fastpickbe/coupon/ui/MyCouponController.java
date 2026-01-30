@@ -3,7 +3,7 @@ package com.maximum0.fastpickbe.coupon.ui;
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
 import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
-import com.maximum0.fastpickbe.coupon.application.MyCouponService;
+import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
 import com.maximum0.fastpickbe.user.domain.User;

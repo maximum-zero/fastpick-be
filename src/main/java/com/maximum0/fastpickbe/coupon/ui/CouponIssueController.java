@@ -2,7 +2,7 @@ package com.maximum0.fastpickbe.coupon.ui;
 
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
-import com.maximum0.fastpickbe.coupon.application.CouponIssueService;
+import com.maximum0.fastpickbe.coupon.application.service.CouponIssueService;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponIssueRequest;
 import com.maximum0.fastpickbe.user.domain.User;
 import jakarta.validation.Valid;

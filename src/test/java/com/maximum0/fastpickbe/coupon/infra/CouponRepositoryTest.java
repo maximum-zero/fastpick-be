@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.infra.repository.CouponRepositoryImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package com.maximum0.fastpickbe.coupon.support;
 
-import com.maximum0.fastpickbe.coupon.application.admin.KeywordExtractor;
+import com.maximum0.fastpickbe.coupon.application.service.CouponKeywordManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -28,7 +28,7 @@ class CouponDataSeeder {
     private TransactionTemplate transactionTemplate;
 
     @Autowired
-    private KeywordExtractor keywordExtractor;
+    private CouponKeywordManager couponKeywordManager;
 
     private static final int TOTAL_COUNT = 1_000_000;
     private static final int BATCH_SIZE = 1000;
@@ -68,7 +68,7 @@ class CouponDataSeeder {
                         );
 
                         // 쿠폰 키워드 추출
-                        List<String> keywords = keywordExtractor.extract(brand, title);
+                        List<String> keywords = couponKeywordManager.extract(brand, title);
                         List<Object[]> keywordArgs = keywords.stream()
                                 .map(kw -> new Object[]{
                                         couponId,

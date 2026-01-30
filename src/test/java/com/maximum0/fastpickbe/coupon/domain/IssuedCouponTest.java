@@ -2,6 +2,7 @@ package com.maximum0.fastpickbe.coupon.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

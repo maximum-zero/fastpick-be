@@ -2,7 +2,7 @@ package com.maximum0.fastpickbe.coupon.ui;
 
 import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
-import com.maximum0.fastpickbe.coupon.application.CouponService;
+import com.maximum0.fastpickbe.coupon.application.service.CouponService;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponResponse;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponSummaryResponse;
