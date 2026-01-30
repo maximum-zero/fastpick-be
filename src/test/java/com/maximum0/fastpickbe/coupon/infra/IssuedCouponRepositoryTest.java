@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.IssuedCoupon;
-import com.maximum0.fastpickbe.coupon.domain.MyCouponStatusFilter;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
+import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
+import com.maximum0.fastpickbe.coupon.infra.repository.IssuedCouponRepositoryImpl;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.user.domain.User;
 import java.time.LocalDateTime;

@@ -1,8 +1,8 @@
 package com.maximum0.fastpickbe.coupon.ui.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.CouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponStatus;
 import java.time.LocalDateTime;
 import lombok.Builder;
 

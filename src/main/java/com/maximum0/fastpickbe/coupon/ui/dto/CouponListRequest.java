@@ -1,6 +1,6 @@
 package com.maximum0.fastpickbe.coupon.ui.dto;
 
-import com.maximum0.fastpickbe.coupon.domain.CouponFilterType;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponFilterType;
 import jakarta.validation.constraints.Size;
 
 public record CouponListRequest(

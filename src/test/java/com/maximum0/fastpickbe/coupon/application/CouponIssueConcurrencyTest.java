@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.maximum0.fastpickbe.base.BaseIntegrationTest;
-import com.maximum0.fastpickbe.coupon.domain.Coupon;
-import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
-import com.maximum0.fastpickbe.coupon.domain.IssuedCouponRepository;
+import com.maximum0.fastpickbe.coupon.application.service.CouponIssueService;
+import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
+import com.maximum0.fastpickbe.coupon.domain.repository.CouponRepository;
+import com.maximum0.fastpickbe.coupon.domain.repository.IssuedCouponRepository;
 import com.maximum0.fastpickbe.user.domain.User;
 import com.maximum0.fastpickbe.user.domain.UserRepository;
 import java.time.Clock;

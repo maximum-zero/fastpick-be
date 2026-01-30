@@ -15,8 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
 import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
-import com.maximum0.fastpickbe.coupon.application.MyCouponService;
-import com.maximum0.fastpickbe.coupon.domain.MyCouponStatus;
+import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
+import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
 import com.maximum0.fastpickbe.user.domain.User;
 import java.time.LocalDateTime;
