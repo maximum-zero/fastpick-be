@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
 import com.maximum0.fastpickbe.coupon.application.MyCouponService;
 import com.maximum0.fastpickbe.coupon.domain.MyCouponStatus;
@@ -58,10 +59,9 @@ class MyCouponControllerTest extends BaseRestDocsTest {
                     LocalDateTime.now().plusDays(10),
                     MyCouponStatus.AVAILABLE
             );
-            PageImpl<MyCouponResponse> pageResponse = new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1);
 
             given(myCouponService.getMyCoupons(any(User.class), any(), any(Pageable.class)))
-                    .willReturn(pageResponse);
+                    .willReturn(PageResponse.from(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1)));
 
             // when & then
             mockMvc.perform(getRequest("/api/v1/my/coupons")

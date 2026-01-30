@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
@@ -55,7 +56,7 @@ class CouponControllerTest extends BaseRestDocsTest {
                     .build();
 
             given(couponService.getCoupons(any(), any()))
-                    .willReturn(new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1));
+                    .willReturn(PageResponse.from(new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1)));
 
             // when & then
             mockMvc.perform(getRequest("/api/v1/coupons")

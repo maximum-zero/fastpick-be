@@ -26,7 +26,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "spring.data.redis.repositories.enabled=false",
+                "spring.cache.type=none"
+        }
+)
 @ActiveProfiles("test")
 @DisplayName("쿠폰 발급 동시성 테스트")
 class CouponIssueConcurrencyTest {
@@ -161,9 +167,7 @@ class CouponIssueConcurrencyTest {
         
 
     @Test
-
     @DisplayName("쿠폰 수량보다 많은 유저가 동시에 발급을 요청해도, 수량만큼만 발급된다")
-
     void issue_issuesOnlyAvailableQuantity_whenMoreUsersRequestThanAvailable() throws InterruptedException {
         // given
         int availableQuantity = 50;

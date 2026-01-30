@@ -1,5 +1,6 @@
 package com.maximum0.fastpickbe.coupon.application;
 
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
@@ -11,7 +12,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,16 +33,17 @@ public class CouponService {
      * @param pageable 페이징 설정
      * @return Page<CouponSummaryResponse> 페이징된 쿠폰 요약 정보
      */
-    public Page<CouponSummaryResponse> getCoupons(CouponListRequest request, Pageable pageable) {
+    @Cacheable(cacheNames = "coupons", key = "#request.toString() + #pageable.pageNumber")
+    public PageResponse<CouponSummaryResponse> getCoupons(CouponListRequest request, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now(clock);
 
         long total = couponKeywordRepository.countByCondition(request, now);
         if (total == 0) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResponse.from(new PageImpl<>(List.of(), pageable, 0));
         }
 
         List<CouponSummaryResponse> responses = couponKeywordRepository.findAllByCondition(request, pageable, now);
-        return new PageImpl<>(responses, pageable, total);
+        return PageResponse.from(new PageImpl<>(responses, pageable, total));
     }
 
     /**

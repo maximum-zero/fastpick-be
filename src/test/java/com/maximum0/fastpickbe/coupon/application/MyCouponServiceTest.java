@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.CouponUseStatus;
 import com.maximum0.fastpickbe.coupon.domain.IssuedCoupon;
@@ -71,11 +72,11 @@ class MyCouponServiceTest {
             given(issuedCouponRepository.findAllByUser(any(), any(), any(), any())).willReturn(mockPage);
 
             // when
-            Page<MyCouponResponse> result = myCouponService.getMyCoupons(user, request, pageable);
+            PageResponse<MyCouponResponse> result = myCouponService.getMyCoupons(user, request, pageable);
 
             // then
-            assertThat(result.getTotalElements()).isEqualTo(1);
-            MyCouponResponse responseDto = result.getContent().get(0);
+            assertThat(result.totalElements()).isEqualTo(1);
+            MyCouponResponse responseDto = result.content().get(0);
             assertThat(responseDto.title()).isEqualTo("할인쿠폰");
             assertThat(responseDto.status()).isEqualTo(MyCouponStatus.AVAILABLE);
         }

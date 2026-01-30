@@ -99,30 +99,13 @@ public abstract class BaseRestDocsTest {
     protected List<FieldDescriptor> successPageFields(FieldDescriptor... contentDescriptors) {
         List<FieldDescriptor> fields = successFields(contentDescriptors);
         fields.addAll(List.of(
-                fieldWithPath("data.pageable").ignored(),
-                fieldWithPath("data.pageable.sort").ignored(),
-                fieldWithPath("data.pageable.sort.sorted").ignored(),
-                fieldWithPath("data.pageable.sort.unsorted").ignored(),
-                fieldWithPath("data.pageable.sort.empty").ignored(),
-                fieldWithPath("data.pageable.pageNumber").ignored(),
-                fieldWithPath("data.pageable.pageSize").ignored(),
-                fieldWithPath("data.pageable.offset").ignored(),
-                fieldWithPath("data.pageable.paged").ignored(),
-                fieldWithPath("data.pageable.unpaged").ignored(),
-
-                fieldWithPath("data.sort").ignored(),
-                fieldWithPath("data.sort.sorted").ignored(),
-                fieldWithPath("data.sort.unsorted").ignored(),
-                fieldWithPath("data.sort.empty").ignored(),
-
-                fieldWithPath("data.totalElements").description("전체 요소 수"),
-                fieldWithPath("data.totalPages").description("전체 페이지 수"),
-                fieldWithPath("data.last").description("마지막 페이지 여부"),
                 fieldWithPath("data.size").description("페이지 사이즈"),
                 fieldWithPath("data.number").description("현재 페이지 번호"),
                 fieldWithPath("data.numberOfElements").description("현재 페이지 요소 수"),
-                fieldWithPath("data.first").description("첫 페이지 여부"),
-                fieldWithPath("data.empty").description("데이터 비었는지 여부")
+                fieldWithPath("data.totalElements").description("전체 요소 수"),
+                fieldWithPath("data.totalPages").description("전체 페이지 수"),
+                fieldWithPath("data.last").description("마지막 페이지 여부"),
+                fieldWithPath("data.first").description("첫 페이지 여부")
         ));
         return fields;
     }

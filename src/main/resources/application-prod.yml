@@ -6,3 +6,11 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+
+cors:
+  allowed-origins:
+    - "http://192.168.56.111"
+
+logging:
+  level:
+    org.hibernate.SQL: error

@@ -1,6 +1,7 @@
 package com.maximum0.fastpickbe.coupon.ui;
 
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.coupon.application.MyCouponService;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
@@ -8,7 +9,6 @@ import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
 import com.maximum0.fastpickbe.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +35,7 @@ public class MyCouponController {
      * @return 페이징된 내 쿠폰 목록
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<MyCouponResponse>>> getMyCoupons(
+    public ResponseEntity<ApiResponse<PageResponse<MyCouponResponse>>> getMyCoupons(
             @LoginUser User user,
             @Valid MyCouponListRequest request,
             @PageableDefault(size = 10) Pageable pageable

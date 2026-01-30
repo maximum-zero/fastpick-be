@@ -1,5 +1,6 @@
 package com.maximum0.fastpickbe.coupon.application;
 
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.coupon.domain.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.IssuedCouponRepository;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
@@ -31,10 +32,10 @@ public class MyCouponService {
      * @param pageable 페이징 정보
      * @return 페이징된 내 쿠폰 응답 DTO 목록
      */
-    public Page<MyCouponResponse> getMyCoupons(User user, MyCouponListRequest request, Pageable pageable) {
+    public PageResponse<MyCouponResponse> getMyCoupons(User user, MyCouponListRequest request, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now(clock);
         Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.findAllByUser(user, request, pageable, now);
 
-        return issuedCoupons.map(ic -> MyCouponResponse.from(ic, now));
+        return PageResponse.from(issuedCoupons.map(ic -> MyCouponResponse.from(ic, now)));
     }
 }

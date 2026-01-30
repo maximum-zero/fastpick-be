@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.coupon.domain.Coupon;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -80,12 +80,12 @@ class CouponServiceTest {
                     .willReturn(List.of(response1, response2));
 
             // when
-            Page<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
+            PageResponse<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
 
             // then
-            assertThat(result.getContent()).hasSize(2);
-            assertThat(result.getContent().get(0).id()).isEqualTo(1L);
-            assertThat(result.getContent().get(1).id()).isEqualTo(2L);
+            assertThat(result.content()).hasSize(2);
+            assertThat(result.content().get(0).id()).isEqualTo(1L);
+            assertThat(result.content().get(1).id()).isEqualTo(2L);
 
             verify(couponKeywordRepository).countByCondition(request, now);
             verify(couponKeywordRepository).findAllByCondition(request, pageable, now);
@@ -102,11 +102,11 @@ class CouponServiceTest {
                     .willReturn(0L);
 
             // when
-            Page<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
+            PageResponse<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
 
             // then
-            assertThat(result.getContent()).isEmpty();
-            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.content()).isEmpty();
+            assertThat(result.totalElements()).isZero();
             verifyNoInteractions(couponRepository);
         }
     }

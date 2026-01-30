@@ -6,6 +6,7 @@ import com.maximum0.fastpickbe.coupon.domain.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.CouponRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class CouponAdminService {
      * @param coupon 생성할 쿠폰 엔티티
      * @return 생성된 쿠폰 식별자
      */
+    @CacheEvict(cacheNames = "coupons", allEntries = true)
     @Transactional
     public Long createCoupon(Coupon coupon) {
         Coupon savedCoupon = couponRepository.save(coupon);

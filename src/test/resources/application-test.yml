@@ -17,6 +17,17 @@ spring:
         naming:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+
 jwt:
   secret-key: vme_secret_key_for_test_at_least_32_characters_long
   access-token-expiration: 30m
@@ -25,3 +36,8 @@ jwt:
 cors:
   allowed-origins:
     - "*"
+
+management:
+  health:
+    redis:
+      enabled: false
