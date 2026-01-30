@@ -2,7 +2,7 @@ package com.maximum0.fastpickbe.coupon.domain.model;
 
 import com.maximum0.fastpickbe.common.domain.BaseCreateEntity;
 import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

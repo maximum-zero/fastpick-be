@@ -1,6 +1,6 @@
 package com.maximum0.fastpickbe.auth.ui;
 
-import com.maximum0.fastpickbe.auth.application.AuthService;
+import com.maximum0.fastpickbe.auth.application.service.AuthService;
 import com.maximum0.fastpickbe.auth.ui.dto.AuthResponse;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;

@@ -19,7 +19,7 @@ import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
 import com.maximum0.fastpickbe.coupon.application.service.CouponIssueService;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponIssueRequest;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

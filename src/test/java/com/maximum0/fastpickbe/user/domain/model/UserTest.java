@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.user.domain;
+package com.maximum0.fastpickbe.user.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

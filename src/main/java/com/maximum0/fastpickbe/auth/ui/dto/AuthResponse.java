@@ -1,6 +1,6 @@
 package com.maximum0.fastpickbe.auth.ui.dto;
 
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import lombok.Builder;
 
 @Builder

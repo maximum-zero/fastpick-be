@@ -1,7 +1,7 @@
-package com.maximum0.fastpickbe.user.infra;
+package com.maximum0.fastpickbe.user.infra.repository;
 
-import com.maximum0.fastpickbe.user.domain.User;
-import com.maximum0.fastpickbe.user.domain.UserRepository;
+import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

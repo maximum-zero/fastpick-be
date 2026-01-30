@@ -1,8 +1,8 @@
 package com.maximum0.fastpickbe.common.resolver;
 
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
-import com.maximum0.fastpickbe.user.domain.User;
-import com.maximum0.fastpickbe.user.domain.UserRepository;
+import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;

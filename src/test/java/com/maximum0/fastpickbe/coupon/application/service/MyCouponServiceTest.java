@@ -13,7 +13,7 @@ import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
 import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;

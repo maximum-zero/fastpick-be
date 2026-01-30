@@ -6,7 +6,7 @@ import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

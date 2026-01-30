@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.user.domain;
+package com.maximum0.fastpickbe.user.domain.vo;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

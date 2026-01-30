@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.auth.application;
+package com.maximum0.fastpickbe.auth.application.service;
 
 import com.maximum0.fastpickbe.auth.ui.dto.AuthResponse;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
@@ -6,8 +6,8 @@ import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.security.provider.JwtTokenProvider;
-import com.maximum0.fastpickbe.user.domain.User;
-import com.maximum0.fastpickbe.user.domain.UserRepository;
+import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

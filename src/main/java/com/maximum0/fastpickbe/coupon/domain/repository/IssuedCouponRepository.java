@@ -3,7 +3,7 @@ package com.maximum0.fastpickbe.coupon.domain.repository;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

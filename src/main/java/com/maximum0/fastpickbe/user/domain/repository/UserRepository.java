@@ -1,5 +1,6 @@
-package com.maximum0.fastpickbe.user.domain;
+package com.maximum0.fastpickbe.user.domain.repository;
 
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.util.List;
 import java.util.Optional;
 
