@@ -25,7 +25,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class CouponKeywordRepositoryImpl implements CouponKeywordRepository {
     private final JPAQueryFactory queryFactory;
-    private final JpaCouponKeywordRepository couponKeywordRepository;
+    private final CouponKeywordJpaRepository couponKeywordRepository;
 
     /**
      * 쿠폰 키워드 엔티티 목록을 일괄 저장합니다.

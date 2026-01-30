@@ -2,7 +2,7 @@ package com.maximum0.fastpickbe.coupon.application.service;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
-import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueExecutor;
+import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueFacade;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CouponIssueService {
     private final RedissonClient redissonClient;
-    private final CouponIssueExecutor couponIssueExecutor;
+    private final CouponIssueFacade couponIssueFacade;
     private final Clock clock;
 
     private static final String LOCK_PREFIX = "lock:coupon:";
@@ -42,7 +42,7 @@ public class CouponIssueService {
             }
 
             log.info("[CouponIssueService] 쿠폰 발급 성공 - 쿠폰ID: {}, 유저ID: {}", couponId, user.getId());
-            return couponIssueExecutor.executeIssue(couponId, user, now);
+            return couponIssueFacade.executeIssue(couponId, user, now);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new BusinessException(ErrorCode.SYSTEM_LOCKING_ERROR);
