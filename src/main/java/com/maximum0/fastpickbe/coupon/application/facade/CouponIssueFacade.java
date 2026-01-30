@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class CouponIssueExecutor {
+public class CouponIssueFacade {
     private final CouponRepository couponRepository;
     private final IssuedCouponRepository issuedCouponRepository;
 

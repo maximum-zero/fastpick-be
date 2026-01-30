@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
-import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueExecutor;
+import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueFacade;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.Clock;
 import java.time.Instant;
@@ -40,7 +40,7 @@ class CouponIssueServiceTest {
     private RedissonClient redissonClient;
 
     @Mock
-    private CouponIssueExecutor couponIssueExecutor;
+    private CouponIssueFacade couponIssueFacade;
 
     @Mock
     private Clock clock;
@@ -72,7 +72,7 @@ class CouponIssueServiceTest {
             given(mockLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(true);
             given(mockLock.isHeldByCurrentThread()).willReturn(true);
 
-            given(couponIssueExecutor.executeIssue(anyLong(), any(User.class), any()))
+            given(couponIssueFacade.executeIssue(anyLong(), any(User.class), any()))
                     .willReturn(100L);
 
             // when
@@ -80,7 +80,7 @@ class CouponIssueServiceTest {
 
             // then
             assertThat(issuedId).isEqualTo(100L);
-            verify(couponIssueExecutor).executeIssue(anyLong(), any(User.class), any());
+            verify(couponIssueFacade).executeIssue(anyLong(), any(User.class), any());
             verify(mockLock).unlock();
         }
 
@@ -99,7 +99,7 @@ class CouponIssueServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CONCURRENCY_BUSY);
 
-            verifyNoInteractions(couponIssueExecutor);
+            verifyNoInteractions(couponIssueFacade);
         }
     }
 }

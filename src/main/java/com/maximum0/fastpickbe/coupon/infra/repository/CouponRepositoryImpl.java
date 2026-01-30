@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class CouponRepositoryImpl implements CouponRepository {
-    private final JpaCouponRepository jpaRepository;
+    private final CouponJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
 
     /**

@@ -7,7 +7,7 @@ import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
-import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueExecutor;
+import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueFacade;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.repository.CouponRepository;
@@ -30,12 +30,12 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({ CouponIssueExecutor.class, CouponRepositoryImpl.class, IssuedCouponRepositoryImpl.class, UserRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class })
+@Import({ CouponIssueFacade.class, CouponRepositoryImpl.class, IssuedCouponRepositoryImpl.class, UserRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("CouponIssueExecutor 단위 테스트")
-class CouponIssueExecutorTest {
+class CouponIssueFacadeTest {
     @Autowired
-    private CouponIssueExecutor couponIssueExecutor;
+    private CouponIssueFacade couponIssueFacade;
 
     @Autowired
     private CouponRepository couponRepository;
@@ -66,7 +66,7 @@ class CouponIssueExecutorTest {
             Coupon savedCoupon = couponRepository.save(coupon);
 
             // when
-            Long issuedId = couponIssueExecutor.executeIssue(savedCoupon.getId(), testUser, now);
+            Long issuedId = couponIssueFacade.executeIssue(savedCoupon.getId(), testUser, now);
 
             // then
             assertThat(issuedId).isNotNull();
@@ -87,7 +87,7 @@ class CouponIssueExecutorTest {
             issuedCouponRepository.save(IssuedCoupon.create(testUser, savedCoupon));
 
             // when & then
-            assertThatThrownBy(() -> couponIssueExecutor.executeIssue(savedCoupon.getId(), testUser, now))
+            assertThatThrownBy(() -> couponIssueFacade.executeIssue(savedCoupon.getId(), testUser, now))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_ISSUED_COUPON);
         }
@@ -103,7 +103,7 @@ class CouponIssueExecutorTest {
             couponRepository.save(savedCoupon);
 
             // when & then
-            assertThatThrownBy(() -> couponIssueExecutor.executeIssue(savedCoupon.getId(), testUser, now))
+            assertThatThrownBy(() -> couponIssueFacade.executeIssue(savedCoupon.getId(), testUser, now))
                     .isInstanceOf(BusinessException.class);
         }
     }
