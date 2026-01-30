@@ -1,8 +1,9 @@
-package com.maximum0.fastpickbe.user.domain;
+package com.maximum0.fastpickbe.user.domain.model;
 
 import com.maximum0.fastpickbe.common.domain.BaseEntity;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

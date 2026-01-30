@@ -1,9 +1,9 @@
-package com.maximum0.fastpickbe.user.infra;
+package com.maximum0.fastpickbe.user.infra.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.maximum0.fastpickbe.common.config.JpaConfig;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

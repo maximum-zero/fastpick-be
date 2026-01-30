@@ -6,7 +6,7 @@ import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.repository.CouponRepository;
 import com.maximum0.fastpickbe.coupon.domain.repository.IssuedCouponRepository;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

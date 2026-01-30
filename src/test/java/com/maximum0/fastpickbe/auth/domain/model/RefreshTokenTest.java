@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.auth.domain;
+package com.maximum0.fastpickbe.auth.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

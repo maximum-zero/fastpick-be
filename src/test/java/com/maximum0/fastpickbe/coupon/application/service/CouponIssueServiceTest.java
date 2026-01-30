@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueExecutor;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;

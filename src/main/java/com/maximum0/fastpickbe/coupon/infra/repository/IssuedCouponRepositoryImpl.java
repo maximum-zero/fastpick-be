@@ -9,7 +9,7 @@ import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.repository.IssuedCouponRepository;
 import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -18,7 +18,7 @@ import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
 import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
 import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

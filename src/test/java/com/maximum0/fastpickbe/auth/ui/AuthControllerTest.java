@@ -8,7 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.maximum0.fastpickbe.auth.application.AuthService;
+import com.maximum0.fastpickbe.auth.application.service.AuthService;
 import com.maximum0.fastpickbe.auth.ui.dto.AuthResponse;
 import com.maximum0.fastpickbe.auth.ui.dto.LoginRequest;
 import com.maximum0.fastpickbe.auth.ui.dto.SignUpRequest;
@@ -16,7 +16,7 @@ import com.maximum0.fastpickbe.base.BaseRestDocsTest;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -5,7 +5,7 @@ import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.repository.IssuedCouponRepository;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;

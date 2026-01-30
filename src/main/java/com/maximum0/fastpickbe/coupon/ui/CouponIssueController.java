@@ -4,7 +4,7 @@ import com.maximum0.fastpickbe.common.annotation.LoginUser;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.coupon.application.service.CouponIssueService;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponIssueRequest;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

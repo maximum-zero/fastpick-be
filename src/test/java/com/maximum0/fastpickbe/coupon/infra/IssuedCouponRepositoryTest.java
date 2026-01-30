@@ -9,7 +9,7 @@ import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
 import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
 import com.maximum0.fastpickbe.coupon.infra.repository.IssuedCouponRepositoryImpl;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

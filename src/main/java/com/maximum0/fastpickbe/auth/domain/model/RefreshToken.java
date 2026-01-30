@@ -1,7 +1,7 @@
-package com.maximum0.fastpickbe.auth.domain;
+package com.maximum0.fastpickbe.auth.domain.model;
 
 import com.maximum0.fastpickbe.common.domain.BaseEntity;
-import com.maximum0.fastpickbe.user.domain.User;
+import com.maximum0.fastpickbe.user.domain.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

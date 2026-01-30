@@ -1,6 +1,6 @@
 package com.maximum0.fastpickbe.common.security.principal;
 
-import com.maximum0.fastpickbe.user.domain.UserRepository;
+import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

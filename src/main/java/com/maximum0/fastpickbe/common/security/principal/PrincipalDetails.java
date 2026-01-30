@@ -1,7 +1,7 @@
 package com.maximum0.fastpickbe.common.security.principal;
 
-import com.maximum0.fastpickbe.user.domain.User;
-import com.maximum0.fastpickbe.user.domain.UserRole;
+import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.Getter;
