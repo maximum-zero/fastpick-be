@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -14,6 +15,7 @@ import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.coupon.application.facade.CouponIssueFacade;
 import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ import org.redisson.api.RedissonClient;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Coupon Issue Service 단위 테스트")
 class CouponIssueServiceTest {
+
     @InjectMocks
     private CouponIssueService couponIssueService;
 
@@ -46,7 +49,6 @@ class CouponIssueServiceTest {
     private Clock clock;
 
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
-    private final Instant fixedInstant = now.atZone(ZoneId.systemDefault()).toInstant();
     private User testUser;
 
     @BeforeEach
@@ -55,15 +57,16 @@ class CouponIssueServiceTest {
         given(clock.instant()).willReturn(fixedInstant);
         given(clock.getZone()).willReturn(ZoneId.systemDefault());
 
-        testUser = User.forTest(1L, "test@test.com", "password", "user");
+        testUser = User.forTest(1L, "test@test.com", "password", "user", UserRole.USER);
     }
 
     @Nested
-    @DisplayName("쿠폰 발급 테스트")
-    class IssueCouponTest {
+    @DisplayName("쿠폰 발급 시나리오 테스트")
+    class Issue_Coupon_Scenario {
+
         @Test
-        @DisplayName("락 획득에 성공하면 Executor를 통해 발급을 수행한다")
-        void issue_LockAcquired_Success() throws InterruptedException {
+        @DisplayName("분산 락 획득에 성공하면 쿠폰 발급 로직을 수행하고 발급 ID를 반환한다")
+        void givenLockAcquired_whenIssue_thenReturnsIssuedId() throws InterruptedException {
             // given
             Long couponId = 1L;
             RLock mockLock = mock(RLock.class);
@@ -71,22 +74,20 @@ class CouponIssueServiceTest {
             given(redissonClient.getLock(anyString())).willReturn(mockLock);
             given(mockLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(true);
             given(mockLock.isHeldByCurrentThread()).willReturn(true);
-
-            given(couponIssueFacade.executeIssue(anyLong(), any(User.class), any()))
-                    .willReturn(100L);
+            given(couponIssueFacade.executeIssue(anyLong(), any(User.class), any())).willReturn(100L);
 
             // when
             Long issuedId = couponIssueService.issue(couponId, testUser);
 
             // then
             assertThat(issuedId).isEqualTo(100L);
-            verify(couponIssueFacade).executeIssue(anyLong(), any(User.class), any());
-            verify(mockLock).unlock();
+            verify(couponIssueFacade, times(1)).executeIssue(anyLong(), any(User.class), any());
+            verify(mockLock, times(1)).unlock();
         }
 
         @Test
-        @DisplayName("락 획득에 실패하면 CONCURRENCY_BUSY 예외를 던진다")
-        void issue_LockAcquisitionFails_ThrowsException() throws InterruptedException {
+        @DisplayName("분산 락 획득에 실패하면 동시성 점유 예외를 반환한다")
+        void givenLockAcquisitionFails_whenIssue_thenThrowsExceptionByConcurrencyBusy() throws InterruptedException {
             // given
             Long couponId = 1L;
             RLock mockLock = mock(RLock.class);
@@ -102,4 +103,5 @@ class CouponIssueServiceTest {
             verifyNoInteractions(couponIssueFacade);
         }
     }
+
 }

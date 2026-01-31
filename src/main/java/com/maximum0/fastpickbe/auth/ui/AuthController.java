@@ -17,13 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
 
     /**
      * 신규 회원가입을 처리한다.
      *
      * @param request 가입 정보
-     * @return 생성된 유저의 식별자(ID)를 담은 공통 응답
+     * @return 가입 완료된 유저 정보와 토큰을 담은 공통 응답
      */
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> signUp(@Valid @RequestBody SignUpRequest request) {
@@ -34,7 +35,7 @@ public class AuthController {
      * 로그인을 처리한다.
      *
      * @param request 로그인 정보
-     * @return 인증된 유저의 식별자(ID)를 담은 공통 응답
+     * @return 인증된 유저 정보와 토큰을 담은 공통 응답
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {

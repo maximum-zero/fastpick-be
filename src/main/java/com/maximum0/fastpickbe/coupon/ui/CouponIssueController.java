@@ -16,18 +16,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/coupon-issues")
 @RequiredArgsConstructor
 public class CouponIssueController {
+
     private final CouponIssueService couponIssueService;
 
     /**
-     * 특정 쿠폰에 대한 발급 요청을 처리합니다.
-     * 
+     * 특정 쿠폰에 대한 발급 요청을 처리한다.
+     *
      * @param request 발급 요청 정보 (쿠폰 ID 등)
-     * @param user    @LoginUser 어노테이션을 통해 주입된 현재 인증된 사용자
-     * @return ApiResponse<Long> 생성된 발급 이력의 식별자
+     * @param user    현재 로그인된 사용자 정보 (@LoginUser)
+     * @return 생성된 발급 이력의 식별자를 담은 공통 응답
      */
     @PostMapping
     public ApiResponse<Long> issue(@RequestBody @Valid CouponIssueRequest request, @LoginUser User user) {
         Long issuedId = couponIssueService.issue(request.couponId(), user);
         return ApiResponse.ok(issuedId);
     }
+
 }

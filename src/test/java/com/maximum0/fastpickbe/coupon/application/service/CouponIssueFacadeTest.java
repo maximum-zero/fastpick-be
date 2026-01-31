@@ -32,8 +32,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @Import({ CouponIssueFacade.class, CouponRepositoryImpl.class, IssuedCouponRepositoryImpl.class, UserRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DisplayName("CouponIssueExecutor 단위 테스트")
+@DisplayName("Coupon Issue Facade 슬라이스 테스트")
 class CouponIssueFacadeTest {
+
     @Autowired
     private CouponIssueFacade couponIssueFacade;
 
@@ -55,15 +56,14 @@ class CouponIssueFacadeTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 발급 실행 테스트")
-    class ExecuteIssueTest {
+    @DisplayName("쿠폰 발급 실행 시나리오 테스트")
+    class Execute_Issue_Scenario {
 
         @Test
-        @DisplayName("유효한 쿠폰인 경우 재고를 차감하고 발급 이력을 저장한다")
-        void executeIssue_Succeeds_WhenConditionsAreMet() {
+        @DisplayName("유효한 쿠폰 정보가 주어지고 발급을 실행하면 재고를 차감하고 발급 이력을 정상 저장한다")
+        void givenValidCoupon_whenExecuteIssue_thenReturnsIssuedId() {
             // given
-            Coupon coupon = Coupon.create("브랜드", "선착순 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
-            Coupon savedCoupon = couponRepository.save(coupon);
+            Coupon savedCoupon = saveTestCoupon("선착순 쿠폰", 100);
 
             // when
             Long issuedId = couponIssueFacade.executeIssue(savedCoupon.getId(), testUser, now);
@@ -77,13 +77,10 @@ class CouponIssueFacadeTest {
         }
 
         @Test
-        @DisplayName("이미 발급받은 유저라면 ALREADY_ISSUED_COUPON 예외가 발생한다")
-        void executeIssue_ThrowsException_WhenAlreadyIssued() {
+        @DisplayName("이미 발급받은 유저 정보가 주어지면 발급 시 중복 발급 예외를 반환한다")
+        void givenAlreadyIssuedUser_whenExecuteIssue_thenThrowsExceptionByAlreadyIssued() {
             // given
-            Coupon coupon = Coupon.create("브랜드", "중복 체크 쿠폰", "요약", "상세", 100, now.minusDays(1), now.plusDays(1));
-            Coupon savedCoupon = couponRepository.save(coupon);
-
-            // 이미 한 번 발급된 상태 시뮬레이션
+            Coupon savedCoupon = saveTestCoupon("중복 체크 쿠폰", 100);
             issuedCouponRepository.save(IssuedCoupon.create(testUser, savedCoupon));
 
             // when & then
@@ -93,12 +90,10 @@ class CouponIssueFacadeTest {
         }
 
         @Test
-        @DisplayName("쿠폰 수량이 소진되었다면 발급 시 예외가 발생한다")
-        void executeIssue_ThrowsException_WhenSoldOut() {
+        @DisplayName("품절된 쿠폰 정보가 주어지면 발급 시 수량 소진 예외를 반환한다")
+        void givenSoldOutCoupon_whenExecuteIssue_thenThrowsExceptionBySoldOut() {
             // given
-            Coupon coupon = Coupon.create("브랜드", "마지막 쿠폰", "요약", "상세", 1, now.minusDays(1), now.plusDays(1));
-            Coupon savedCoupon = couponRepository.save(coupon);
-
+            Coupon savedCoupon = saveTestCoupon("마지막 쿠폰", 1);
             savedCoupon.issue(now);
             couponRepository.save(savedCoupon);
 
@@ -106,6 +101,13 @@ class CouponIssueFacadeTest {
             assertThatThrownBy(() -> couponIssueFacade.executeIssue(savedCoupon.getId(), testUser, now))
                     .isInstanceOf(BusinessException.class);
         }
+    }
+
+    // --- 테스트 메서드 ---
+
+    private Coupon saveTestCoupon(String title, int totalQuantity) {
+        Coupon coupon = Coupon.create("브랜드", title, "요약", "상세", totalQuantity, now.minusDays(1), now.plusDays(1));
+        return couponRepository.save(coupon);
     }
 
 }

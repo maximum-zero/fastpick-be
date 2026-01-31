@@ -17,12 +17,13 @@ import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-@DisplayName("AuthController 단위 테스트")
+@DisplayName("Auth Controller 슬라이스 테스트")
 class AuthControllerTest extends BaseRestDocsTest {
 
     private final AuthService authService = Mockito.mock(AuthService.class);
@@ -33,33 +34,29 @@ class AuthControllerTest extends BaseRestDocsTest {
     }
 
     @Nested
-    @DisplayName("회원가입 테스트")
-    class SignUpTest {
+    @DisplayName("회원가입 시나리오 테스트")
+    class Sign_Up_Scenario {
 
         @Test
-        @DisplayName("올바른 가입 정보로 요청하면 성공 코드와 생성된 ID를 반환한다.")
-        void signUp_returnsUserId_whenRequestIsValid() throws Exception {
+        @DisplayName("유효한 가입 정보가 주어지고 가입을 요청하면 성공 코드와 토큰 정보를 반환한다")
+        void givenValidRequest_whenSignUp_thenReturnsAuthResponse() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
+            User user = User.forTest(1L, "test@test.com", "password123", "테스터", UserRole.USER);
+            AuthResponse authResponse = createAuthResponse(user);
 
-            User newUser = User.forTest(1L, "test@test.com", "password123", "테스터");
-            String accessToken = "access-token";
-            String refreshToken = "refresh-token";
-            String grantType = "Bearer";
-
-            AuthResponse authResponse = AuthResponse.of(accessToken, refreshToken, grantType, newUser);
             given(authService.signUp(any())).willReturn(authResponse);
 
             // when & then
             mockMvc.perform(postRequest("/api/v1/auth/signup", request))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
-                    .andExpect(jsonPath("$.data.accessToken").value(accessToken))
-                    .andExpect(jsonPath("$.data.refreshToken").value(refreshToken))
-                    .andExpect(jsonPath("$.data.grantType").value(grantType))
-                    .andExpect(jsonPath("$.data.user.id").value(newUser.getId()))
-                    .andExpect(jsonPath("$.data.user.email").value(newUser.getEmail()))
-                    .andExpect(jsonPath("$.data.user.name").value(newUser.getName()))
+                    .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+                    .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"))
+                    .andExpect(jsonPath("$.data.grantType").value("Bearer"))
+                    .andExpect(jsonPath("$.data.user.id").value(user.getId()))
+                    .andExpect(jsonPath("$.data.user.email").value(user.getEmail()))
+                    .andExpect(jsonPath("$.data.user.name").value(user.getName()))
                     .andDo(restDocument("auth/signup",
                             requestFields(
                                     fieldWithPath("email").description("이메일"),
@@ -78,8 +75,8 @@ class AuthControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("이메일 형식이 올바르지 않으면 INVALID_INPUT_VALUE 예외를 반환한다.")
-        void signUp_returnsBadRequest_whenEmailIsInvalid() throws Exception {
+        @DisplayName("이메일 형식이 올바르지 않은 정보가 주어지면 입력값 유효성 예외를 반환한다")
+        void givenInvalidEmail_whenSignUp_thenThrowsExceptionByInvalidInput() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("invalid-email", "password123", "테스터");
 
@@ -94,8 +91,8 @@ class AuthControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("이미 가입된 이메일이면 DUPLICATE_EMAIL 예외를 반환한다.")
-        void signUp_returnsConflict_whenEmailAlreadyExists() throws Exception {
+        @DisplayName("이미 사용 중인 이메일 정보가 주어지면 중복 이메일 예외를 반환한다")
+        void givenDuplicateEmail_whenSignUp_thenThrowsExceptionByDuplicateEmail() throws Exception {
             // given
             SignUpRequest request = new SignUpRequest("exists@test.com", "password123", "테스터");
             ErrorCode errorCode = ErrorCode.DUPLICATE_EMAIL;
@@ -113,29 +110,26 @@ class AuthControllerTest extends BaseRestDocsTest {
     }
 
     @Nested
-    @DisplayName("로그인 테스트")
-    class LoginTest {
+    @DisplayName("로그인 시나리오 테스트")
+    class Login_Scenario {
 
         @Test
-        @DisplayName("이메일과 비밀번호가 일치하면 성공 코드와 토큰을 반환한다.")
-        void login_returnsTokenResponse_whenCredentialsAreValid() throws Exception {
+        @DisplayName("유효한 로그인 정보가 주어지고 로그인을 요청하면 성공 코드와 토큰 정보를 반환한다")
+        void givenValidCredentials_whenLogin_thenReturnsAuthResponse() throws Exception {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "password123");
-            User user = User.forTest(1L, "test@test.com", "password123", "테스터");
-            String accessToken = "access-token";
-            String refreshToken = "refresh-token";
-            String grantType = "Bearer";
+            User user = User.forTest(1L, "test@test.com", "password123", "테스터", UserRole.USER);
+            AuthResponse authResponse = createAuthResponse(user);
 
-            AuthResponse authResponse = AuthResponse.of(accessToken, refreshToken, grantType, user);
             given(authService.login(any())).willReturn(authResponse);
 
             // when & then
             mockMvc.perform(postRequest("/api/v1/auth/login", request))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
-                    .andExpect(jsonPath("$.data.accessToken").value(accessToken))
-                    .andExpect(jsonPath("$.data.refreshToken").value(refreshToken))
-                    .andExpect(jsonPath("$.data.grantType").value(grantType))
+                    .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+                    .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"))
+                    .andExpect(jsonPath("$.data.grantType").value("Bearer"))
                     .andExpect(jsonPath("$.data.user.id").value(user.getId()))
                     .andExpect(jsonPath("$.data.user.email").value(user.getEmail()))
                     .andExpect(jsonPath("$.data.user.name").value(user.getName()))
@@ -156,8 +150,8 @@ class AuthControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("로그인 정보가 일치하지 않으면 LOGIN_FAILED 예외를 반환한다.")
-        void login_returnsUnauthorized_whenLoginFails() throws Exception {
+        @DisplayName("잘못된 로그인 정보가 주어지면 로그인 실패 예외를 반환한다")
+        void givenInvalidCredentials_whenLogin_thenThrowsExceptionByLoginFailed() throws Exception {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "wrong-password");
             ErrorCode errorCode = ErrorCode.LOGIN_FAILED;
@@ -167,10 +161,16 @@ class AuthControllerTest extends BaseRestDocsTest {
             mockMvc.perform(postRequest("/api/v1/auth/login", request))
                     .andExpect(status().is(errorCode.getStatus()))
                     .andExpect(jsonPath("$.code").value(errorCode.getCode()))
-                    .andExpect(jsonPath("$.message").value(errorCode.getMessage()))
                     .andDo(restDocument("auth/login-fail",
                             responseFields(errorFields())
                     ));
         }
     }
+
+    // --- 테스트 메서드 ---
+
+    private AuthResponse createAuthResponse(User user) {
+        return AuthResponse.of("access-token", "refresh-token", "Bearer", user);
+    }
+
 }

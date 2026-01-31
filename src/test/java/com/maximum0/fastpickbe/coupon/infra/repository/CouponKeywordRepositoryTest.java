@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.coupon.infra;
+package com.maximum0.fastpickbe.coupon.infra.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -6,6 +6,7 @@ import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.CouponKeyword;
+import com.maximum0.fastpickbe.coupon.domain.repository.CouponKeywordRepository;
 import com.maximum0.fastpickbe.coupon.domain.vo.CouponFilterType;
 import com.maximum0.fastpickbe.coupon.domain.vo.CouponStatus;
 import com.maximum0.fastpickbe.coupon.domain.vo.CouponUseStatus;
@@ -30,11 +31,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({CouponKeywordRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class})
-@DisplayName("Coupon Keyword Repository 단위 테스트")
+@DisplayName("Coupon Keyword Repository 슬라이스 테스트")
 class CouponKeywordRepositoryTest {
 
     @Autowired
-    private CouponKeywordRepositoryImpl couponKeywordRepository;
+    private CouponKeywordRepository couponKeywordRepository;
 
     @Autowired
     private EntityManager em;
@@ -42,8 +43,8 @@ class CouponKeywordRepositoryTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Nested
-    @DisplayName("기본 상태 필터링 검증")
-    class BasicFilterTest {
+    @DisplayName("기본 상태 필터링 시나리오 테스트")
+    class Basic_Filter_Scenario {
 
         @BeforeEach
         void setUp() {
@@ -68,7 +69,7 @@ class CouponKeywordRepositoryTest {
 
         @Test
         @DisplayName("ISSUING 필터 적용 시 현재 발행 기간 내에 있고 품절되지 않은 쿠폰을 반환한다")
-        void findAllByCondition_ReturnsOnlyIssuing() {
+        void givenIssuingFilter_whenFindAllByCondition_thenReturnsOnlyIssuing() {
             // given
             CouponListRequest request = new CouponListRequest("나이키", CouponFilterType.ISSUING);
 
@@ -82,7 +83,7 @@ class CouponKeywordRepositoryTest {
 
         @Test
         @DisplayName("CLOSED 필터 적용 시 기간이 만료되었거나 품절된 쿠폰을 반환한다")
-        void findAllByCondition_ReturnsClosedOrSoldOut() {
+        void givenClosedFilter_whenFindAllByCondition_thenReturnsClosedOrSoldOut() {
             // given
             CouponListRequest request = new CouponListRequest("나이키", CouponFilterType.CLOSED);
 
@@ -91,13 +92,13 @@ class CouponKeywordRepositoryTest {
 
             // then
             assertThat(result).hasSize(2);
-            assertThat(result.get(0).status()).isEqualTo(CouponStatus.EXHAUSTED.name());
-            assertThat(result.get(1).status()).isEqualTo(CouponStatus.EXPIRED.name());
+            assertThat(result).extracting(CouponSummaryResponse::status)
+                    .containsExactlyInAnyOrder(CouponStatus.EXHAUSTED.name(), CouponStatus.EXPIRED.name());
         }
 
         @Test
         @DisplayName("READY 필터 적용 시 아직 시작되지 않은 쿠폰을 반환한다")
-        void findAllByCondition_ReturnsReady() {
+        void givenReadyFilter_whenFindAllByCondition_thenReturnsReady() {
             // given
             CouponListRequest request = new CouponListRequest("나이키", CouponFilterType.READY);
 
@@ -111,8 +112,8 @@ class CouponKeywordRepositoryTest {
     }
 
     @Nested
-    @DisplayName("복합 조건 및 경계값 검증 테스트")
-    class ComplexConditionAndBoundaryTest {
+    @DisplayName("복합 조건 및 경계값 검증 시나리오 테스트")
+    class Complex_Condition_Scenario {
 
         @BeforeEach
         void setUp() {
@@ -126,7 +127,7 @@ class CouponKeywordRepositoryTest {
 
         @Test
         @DisplayName("시작 시간이 현재 시간과 일치하면 ISSUING 상태로 간주한다")
-        void shouldBeIssuing_WhenStartAtEqualsNow() {
+        void givenStartAtEqualsNow_whenFindAllByCondition_thenReturnsIssuing() {
             // given
             CouponListRequest request = new CouponListRequest("나이키", CouponFilterType.ISSUING);
 
@@ -139,9 +140,8 @@ class CouponKeywordRepositoryTest {
 
         @Test
         @DisplayName("브랜드 검색어와 필터를 동시에 적용하면 교집합 데이터만 반환한다")
-        void shouldReturnIntersection_WhenSearchAndFilterApplied() {
+        void givenSearchAndFilter_whenFindAllByCondition_thenReturnsIntersection() {
             // given
-            // 아디다스도 ISSUING 상태지만, 검색어는 "나이키"인 상황
             CouponListRequest request = new CouponListRequest("나이키", CouponFilterType.ISSUING);
 
             // when
@@ -153,12 +153,14 @@ class CouponKeywordRepositoryTest {
         }
     }
 
+    // --- 테스트 메서드 ---
 
-    private void saveCouponData(String brand, LocalDateTime start, LocalDateTime end, int totalQuantity, int issuedQuantity, CouponUseStatus useStatus) {
-        Coupon coupon = Coupon.forTest(null, brand, brand + " 제목", "요약 설명", "상세 설명", totalQuantity, issuedQuantity, start, end, useStatus);
+    private void saveCouponData(String brand, LocalDateTime start, LocalDateTime end, int total, int issued, CouponUseStatus useStatus) {
+        Coupon coupon = Coupon.forTest(null, brand, brand + " 제목", "요약", "상세", total, issued, start, end, useStatus);
         em.persist(coupon);
 
         CouponKeyword couponKeyword = CouponKeyword.forTest(coupon.getId(), brand);
         em.persist(couponKeyword);
     }
+
 }

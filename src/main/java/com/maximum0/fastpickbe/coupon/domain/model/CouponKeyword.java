@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "tb_coupon_keyword",
         indexes = {
@@ -23,18 +25,19 @@ import lombok.NoArgsConstructor;
                 )
         }
 )
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponKeyword extends BaseCreateEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "coupon_id", nullable = false)
-    private Long couponId;
+    private Long couponId;  // 도메인 간 결합도를 낮추기 위해 식별자(ID)를 직접 참조한다.
 
     @Column(nullable = false, length = 100)
     private String keyword;
+
+    // --- 생성자 ---
 
     @Builder(access = AccessLevel.PRIVATE)
     private CouponKeyword(Long couponId, String keyword) {
@@ -42,6 +45,11 @@ public class CouponKeyword extends BaseCreateEntity {
         this.keyword = keyword;
     }
 
+    // --- 정적 팩토리 메서드 ---
+
+    /**
+     * 쿠폰 검색 키워드 객체를 생성한다. (비즈니스 로직)
+     */
     public static CouponKeyword create(Coupon coupon, String keyword) {
         return CouponKeyword.builder()
                 .couponId(coupon.getId())
@@ -49,6 +57,9 @@ public class CouponKeyword extends BaseCreateEntity {
                 .build();
     }
 
+    /**
+     * 쿠폰 검색 키워드 객체를 생성한다. (테스트 코드)
+     */
     public static CouponKeyword forTest(Long couponId, String keyword) {
         return CouponKeyword.builder()
                 .couponId(couponId)

@@ -23,8 +23,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-@DisplayName("쿠폰 관리자 컨트롤러 단위 테스트")
+@DisplayName("Coupon Admin Controller 슬라이스 테스트")
 class CouponAdminControllerTest extends BaseRestDocsTest {
+
     private final CouponAdminService couponAdminService = Mockito.mock(CouponAdminService.class);
 
     @Override
@@ -35,23 +36,15 @@ class CouponAdminControllerTest extends BaseRestDocsTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Nested
-    @DisplayName("쿠폰 생성 테스트")
-    class CreateCouponTest {
+    @DisplayName("쿠폰 생성 시나리오 테스트")
+    class Create_Coupon_Scenario {
 
         @Test
-        @DisplayName("올바른 쿠폰 정보를 입력하면 쿠폰을 생성하고 Created를 반환한다.")
-        void createCoupon_returnsCreated_whenRequestIsValid() throws Exception {
+        @DisplayName("올바른 쿠폰 정보가 주어지고 생성을 요청하면 쿠폰을 생성하고 201 Created를 반환한다")
+        void givenValidRequest_whenCreateCoupon_thenReturnsCreated() throws Exception {
             // given
             Long savedId = 1L;
-            CouponCreateRequest request = new CouponCreateRequest(
-                    "나이키",
-                    "[특가] 에어포스 1",
-                    "요약 설명",
-                    "상세 설명입니다.",
-                    100,
-                    now.plusDays(1),
-                    now.plusDays(7)
-            );
+            CouponCreateRequest request = createCouponRequest("나이키", 100);
 
             given(couponAdminService.createCoupon(any())).willReturn(savedId);
 
@@ -81,10 +74,10 @@ class CouponAdminControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("필수값이 누락되면 INVALID_INPUT_VALUE 예외를 반환한다.")
-        void createCoupon_returnsBadRequest_whenRequestIsInvalid() throws Exception {
+        @DisplayName("유효하지 않은 요청 정보가 주어지면 입력값 검증 실패 예외를 반환한다")
+        void givenInvalidRequest_whenCreateCoupon_thenThrowsExceptionByInvalidInput() throws Exception {
             // given
-            CouponCreateRequest invalidRequest = new CouponCreateRequest("", "", "", "", 0, null, null);
+            CouponCreateRequest invalidRequest = createCouponRequest("", -1);
             ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
 
             // when & then
@@ -97,4 +90,14 @@ class CouponAdminControllerTest extends BaseRestDocsTest {
                     ));
         }
     }
+
+    // --- 테스트 메서드 ---
+
+    private CouponCreateRequest createCouponRequest(String brand, int quantity) {
+        return new CouponCreateRequest(
+                brand, "[특가] 에어포스 1", "요약 설명", "상세 설명",
+                quantity, now.plusDays(1), now.plusDays(7)
+        );
+    }
+
 }

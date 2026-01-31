@@ -3,7 +3,7 @@ package com.maximum0.fastpickbe.coupon.ui.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
-import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.vo.IssuedCouponStatus;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
@@ -18,7 +18,7 @@ public record MyCouponResponse(
         int issuedQuantity,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime expireAt,
-        MyCouponStatus status
+        IssuedCouponStatus status
 ) {
         public static MyCouponResponse from(IssuedCoupon issuedCoupon, LocalDateTime now) {
                 Coupon coupon = issuedCoupon.getCoupon();

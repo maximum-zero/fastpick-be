@@ -8,17 +8,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("KeywordExtractor 단위 테스트")
+@DisplayName("Coupon Keyword Manager 단위 테스트")
 class CouponKeywordManagerTest {
     private final CouponKeywordManager couponKeywordManager = new CouponKeywordManager();
 
     @Nested
-    @DisplayName("키워드 추출 테스트")
-    class ExtractBehaviorTest {
+    @DisplayName("키워드 추출 시나리오 테스트")
+    class Extract_Keyword_Scenario {
 
         @Test
-        @DisplayName("특수문자가 포함된 경우 순수 단어만 정갈하게 추출한다")
-        void KeywordExtractor_Extract_ReturnsCleanedKeywords() {
+        @DisplayName("특수문자가 포함된 정보가 주어지면 순수 단어만 정갈하게 추출하여 반환한다")
+        void givenSpecialCharacters_whenExtract_thenReturnsCleanedKeywords() {
             // given
             String brand = "[나이키]";
             String title = "(특전) 에어포스 1-중판";
@@ -32,8 +32,8 @@ class CouponKeywordManagerTest {
         }
 
         @Test
-        @DisplayName("여러 텍스트에 중복된 키워드가 있어도 하나만 남긴다")
-        void KeywordExtractor_Extract_RemovesDuplicates() {
+        @DisplayName("중복된 키워드가 포함된 정보가 주어지면 중복을 제거하고 하나의 키워드만 반환한다")
+        void givenDuplicateKeywords_whenExtract_thenRemovesDuplicates() {
             // given
             String text1 = "나이키 신발";
             String text2 = "신발 세일";
@@ -47,8 +47,8 @@ class CouponKeywordManagerTest {
         }
 
         @Test
-        @DisplayName("2글자 미만의 짧은 키워드는 인덱싱에서 제외한다")
-        void KeywordExtractor_Extract_FiltersShortWords() {
+        @DisplayName("2글자 미만의 짧은 키워드가 주어지면 인덱싱에서 제외하고 반환한다")
+        void givenShortWords_whenExtract_thenFiltersShortWords() {
             // given
             String text = "앱 전용 덤 템";
 
@@ -61,8 +61,8 @@ class CouponKeywordManagerTest {
         }
 
         @Test
-        @DisplayName("불규칙한 공백이 포함되어도 정확하게 토큰을 분리한다")
-        void KeywordExtractor_Extract_HandlesIrregularSpaces() {
+        @DisplayName("불규칙한 공백이 포함된 정보가 주어지면 정확하게 토큰을 분리하여 반환한다")
+        void givenIrregularSpaces_whenExtract_thenHandlesIrregularSpaces() {
             // given
             String text = "  나이키    에어포스  ";
 
@@ -73,4 +73,5 @@ class CouponKeywordManagerTest {
             assertThat(result).containsExactlyInAnyOrder("나이키", "에어포스");
         }
     }
+
 }

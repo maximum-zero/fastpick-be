@@ -28,8 +28,9 @@ import org.mockito.Mockito;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-@DisplayName("쿠폰 컨트롤러 단위 테스트")
+@DisplayName("Coupon Controller 슬라이스 테스트")
 class CouponControllerTest extends BaseRestDocsTest {
+
     private final CouponService couponService = Mockito.mock(CouponService.class);
 
     @Override
@@ -40,20 +41,14 @@ class CouponControllerTest extends BaseRestDocsTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 1, 0);
 
     @Nested
-    @DisplayName("쿠폰 목록 조회 테스트")
-    class GetCouponsTest {
+    @DisplayName("쿠폰 목록 조회 시나리오 테스트")
+    class Get_Coupons_Scenario {
 
         @Test
-        @DisplayName("검색 조건과 페이지 번호로 요청하면 쿠폰 목록을 반환한다.")
-        void getCoupons_returnsPage_whenRequestIsValid() throws Exception {
+        @DisplayName("검색 조건과 페이지 정보가 주어지면 쿠폰 목록을 조회하고 200 OK를 반환한다")
+        void givenValidRequest_whenGetCoupons_thenReturnsCouponPage() throws Exception {
             // given
-            CouponSummaryResponse summary = CouponSummaryResponse.builder()
-                    .id(1L)
-                    .title("할인 쿠폰")
-                    .startAt(now.minusDays(1))
-                    .endAt(now.plusDays(1))
-                    .status(CouponStatus.ISSUING.name())
-                    .build();
+            CouponSummaryResponse summary = createCouponSummaryResponse(1L, "할인 쿠폰");
 
             given(couponService.getCoupons(any(), any()))
                     .willReturn(PageResponse.from(new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1)));
@@ -89,12 +84,12 @@ class CouponControllerTest extends BaseRestDocsTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 상세 조회 테스트")
-    class GetCouponTest {
+    @DisplayName("쿠폰 상세 조회 시나리오 테스트")
+    class Get_Coupon_Scenario {
 
         @Test
-        @DisplayName("존재하는 쿠폰 ID로 조회하면 상세 정보를 반환한다.")
-        void getCoupon_returnsCouponResponse_whenIdExists() throws Exception {
+        @DisplayName("존재하는 쿠폰 ID가 주어지면 쿠폰 상세 정보를 조회하고 200 OK를 반환한다")
+        void givenExistingId_whenGetCoupon_thenReturnsCouponResponse() throws Exception {
             // given
             Long couponId = 1L;
             CouponResponse response = new CouponResponse(
@@ -125,8 +120,8 @@ class CouponControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 쿠폰 ID로 조회하면 COUPON_NOT_FOUND 예외를 반환한다.")
-        void getCoupon_returnsNotFound_whenIdDoesNotExist() throws Exception {
+        @DisplayName("존재하지 않는 쿠폰 ID가 주어지면 쿠폰 조회 실패 예외를 반환한다")
+        void givenNonExistentId_whenGetCoupon_thenThrowsExceptionByCouponNotFound() throws Exception {
             // given
             Long couponId = 999L;
             ErrorCode errorCode = ErrorCode.COUPON_NOT_FOUND;
@@ -142,4 +137,21 @@ class CouponControllerTest extends BaseRestDocsTest {
                     ));
         }
     }
+
+    // --- 테스트 메서드 ---
+
+    private CouponSummaryResponse createCouponSummaryResponse(Long id, String title) {
+        return CouponSummaryResponse.builder()
+                .id(id)
+                .brand("29CM")
+                .title(title)
+                .summary("테스트 요약")
+                .totalQuantity(100)
+                .issuedQuantity(0)
+                .startAt(now.minusDays(1))
+                .endAt(now.plusDays(1))
+                .status(CouponStatus.ISSUING.name())
+                .build();
+    }
+
 }

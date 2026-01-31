@@ -1,11 +1,11 @@
-package com.maximum0.fastpickbe.coupon.infra;
+package com.maximum0.fastpickbe.coupon.infra.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
-import com.maximum0.fastpickbe.coupon.infra.repository.CouponRepositoryImpl;
+import com.maximum0.fastpickbe.coupon.domain.vo.CouponUseStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,24 +22,23 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({CouponRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class})
-@DisplayName("Coupon Repository 단위 테스트")
+@DisplayName("Coupon Repository 슬라이스 테스트")
 class CouponRepositoryTest {
 
     @Autowired
     private CouponRepositoryImpl couponRepository;
 
-    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 1, 0);
+    private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Nested
-    @DisplayName("쿠폰 저장 및 단건 조회 테스트")
-    class SaveAndFindTest {
+    @DisplayName("쿠폰 저장 및 단건 조회 시나리오 테스트")
+    class Save_And_Find_Scenario {
 
         @Test
-        @DisplayName("활성화된 쿠폰은 ID로 조회할 수 있다")
-        void saveAndFindActiveById_returnsCoupon_whenCouponIsActive() {
+        @DisplayName("활성화된 쿠폰 식별자가 주어지면, 해당 쿠폰 정보를 반환한다")
+        void givenActiveCoupon_whenFindActiveById_thenReturnsCoupon() {
             // given
-            String title = "활성화 된 쿠폰";
-            Coupon coupon = Coupon.create("브랜드", title, "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
+            Coupon coupon = createCoupon("활성화 된 쿠폰", CouponUseStatus.AVAILABLE);
             Coupon saved = couponRepository.save(coupon);
 
             // when
@@ -47,15 +46,14 @@ class CouponRepositoryTest {
 
             // then
             assertThat(found).isPresent();
-            assertThat(found.get().getTitle()).isEqualTo(title);
+            assertThat(found.get().getTitle()).isEqualTo("활성화 된 쿠폰");
         }
 
         @Test
-        @DisplayName("중단된(DISABLED) 쿠폰은 ID로 조회해도 빈 Optional을 반환한다")
-        void findActiveById_returnsEmpty_whenCouponIsDisabled() {
+        @DisplayName("중단된 쿠폰 식별자가 주어지면, 빈 값을 반환한다")
+        void givenDisabledCoupon_whenFindActiveById_thenReturnsEmpty() {
             // given
-            Coupon coupon = Coupon.create("브랜드", "중단된 쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1));
-            coupon.disable();
+            Coupon coupon = createCoupon("중단된 쿠폰", CouponUseStatus.DISABLED);
             Coupon saved = couponRepository.save(coupon);
 
             // when
@@ -68,15 +66,15 @@ class CouponRepositoryTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 목록 식별자 조회 테스트")
-    class FindAllByIdsTest {
+    @DisplayName("쿠폰 목록 식별자 조회 시나리오 테스트")
+    class Find_All_By_Ids_Scenario {
 
         @Test
-        @DisplayName("식별자 목록이 주어지면 해당하는 모든 쿠폰 엔티티를 반환한다")
-        void findAllByIds_ReturnsCoupons_WhenIdsAreProvided() {
+        @DisplayName("유효한 식별자 목록이 주어지면, 모든 쿠폰 엔티티 목록을 반환한다")
+        void givenValidIds_whenFindAllByIds_thenReturnsCouponList() {
             // given
-            Coupon coupon1 = couponRepository.save(Coupon.create("나이키", "쿠폰1", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
-            Coupon coupon2 = couponRepository.save(Coupon.create("아디다스", "쿠폰2", "요약 설명", "상세 설명", 100, now.minusDays(1), now.plusDays(1)));
+            Coupon coupon1 = couponRepository.save(createCoupon("쿠폰1", CouponUseStatus.AVAILABLE));
+            Coupon coupon2 = couponRepository.save(createCoupon("쿠폰2", CouponUseStatus.AVAILABLE));
             List<Long> targetIds = List.of(coupon1.getId(), coupon2.getId());
 
             // when
@@ -89,14 +87,27 @@ class CouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("빈 식별자 목록이 주어지면 빈 리스트를 반환한다")
-        void findAllByIds_ReturnsEmptyList_WhenIdsAreEmpty() {
+        @DisplayName("빈 식별자 목록이 주어지면, 빈 리스트를 반환한다")
+        void givenEmptyIds_whenFindAllByIds_thenReturnsEmptyList() {
             // when
             List<Coupon> result = couponRepository.findAllByIds(List.of());
 
             // then
             assertThat(result).isEmpty();
         }
+    }
+
+    // --- 테스트 메서드 ---
+
+    private Coupon createCoupon(String title, CouponUseStatus status) {
+        Coupon coupon = Coupon.create("브랜드", title, "요약", "상세",
+                100, now.minusDays(1), now.plusDays(1));
+
+        if (status == CouponUseStatus.DISABLED) {
+            coupon.disable();
+        }
+
+        return coupon;
     }
 
 }

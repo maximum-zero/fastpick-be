@@ -16,19 +16,21 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
-@DisplayName("쿠폰 발급 동시성 테스트")
+@DisplayName("Coupon Issue 동시성 통합 테스트")
 class CouponIssueConcurrencyTest extends BaseIntegrationTest {
 
     @Autowired
@@ -59,28 +61,6 @@ class CouponIssueConcurrencyTest extends BaseIntegrationTest {
         prepareTestData();
     }
 
-    private void setupClock(LocalDateTime dateTime) {
-        Instant fixedInstant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
-        given(clock.instant()).willReturn(fixedInstant);
-        given(clock.getZone()).willReturn(ZoneId.systemDefault());
-    }
-
-    private void prepareTestData() {
-        Coupon coupon = Coupon.create(
-                "브랜드명", "선착순 100명 쿠폰", "요약 설명", "상세 설명",
-                threadCount,
-                now.minusDays(1),
-                now.plusDays(1)
-        );
-        couponId = couponRepository.save(coupon).getId();
-
-        List<User> userList = new ArrayList<>();
-        for (int i = 0; i < threadCount; i++) {
-            userList.add(User.create("user" + i + "@test.com", "pw", "테스터" + i));
-        }
-        users.addAll(userRepository.saveAll(userList));
-    }
-
     @AfterEach
     void tearDown() {
         issuedCouponRepository.deleteAllInBatch();
@@ -88,122 +68,146 @@ class CouponIssueConcurrencyTest extends BaseIntegrationTest {
         couponRepository.deleteAllInBatch();
     }
 
-    @Test
-    @DisplayName("100명의 유저가 동시에 쿠폰 발급을 요청하면, 발급된 수량이 정확히 100이 된다")
-    void issue_maintainsCorrectQuantity_underConcurrentRequests() throws InterruptedException {
-        // given
-        ExecutorService executorService = Executors.newFixedThreadPool(32);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-        final List<Throwable> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
+    @Nested
+    @DisplayName("쿠폰 발급 동시 요청 시나리오 테스트")
+    class Coupon_Issue_Concurrency_Scenario {
 
-        // when
-        for (User user : users) {
-            executorService.submit(() -> {
-                try {
-                    couponIssueService.issue(couponId, user);
-                } catch (Exception e) {
-                    exceptions.add(e);
-                } finally {
-                    latch.countDown();
-                }
-            });
+        @Test
+        @DisplayName("100명의 유저가 동시에 발급을 요청하면 정확히 100장의 쿠폰이 발급되어야 한다")
+        void givenMultipleUsers_whenConcurrentIssue_thenMaintainsCorrectQuantity() throws InterruptedException {
+            // given
+            ExecutorService executorService = Executors.newFixedThreadPool(32);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+            List<Throwable> exceptions = new CopyOnWriteArrayList<>();
+
+            // when
+            for (User user : users) {
+                executorService.submit(() -> {
+                    try {
+                        couponIssueService.issue(couponId, user);
+                    } catch (Exception e) {
+                        exceptions.add(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            Coupon coupon = getCoupon(couponId);
+            long issuedCount = issuedCouponRepository.count();
+
+            assertThat(issuedCount).isEqualTo(threadCount);
+            assertThat(coupon.getIssuedQuantity()).isEqualTo(threadCount);
+            assertThat(exceptions).isEmpty();
         }
 
-        latch.await();
-        executorService.shutdown();
+        @Test
+        @DisplayName("동일 유저가 동시에 여러 번 발급을 시도해도 단 한 장의 쿠폰만 발급되어야 한다")
+        void givenSameUser_whenConcurrentIssue_thenIssuesOnlyOneCoupon() throws InterruptedException {
+            // given
+            int requestCount = 10;
+            User user = users.get(0);
+            ExecutorService executorService = Executors.newFixedThreadPool(requestCount);
+            CountDownLatch latch = new CountDownLatch(requestCount);
+            List<Throwable> exceptions = new CopyOnWriteArrayList<>();
 
-        // then
-        Coupon coupon = couponRepository.findActiveById(couponId)
-                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
-        long issuedCount = issuedCouponRepository.count();
+            // when
+            for (int i = 0; i < requestCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        couponIssueService.issue(couponId, user);
+                    } catch (Exception e) {
+                        exceptions.add(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
 
-        assertThat(issuedCount).isEqualTo(threadCount);
-        assertThat(coupon.getIssuedQuantity()).isEqualTo(threadCount);
-        assertThat(exceptions).isEmpty();
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            Coupon coupon = getCoupon(couponId);
+            long issuedCount = issuedCouponRepository.count();
+
+            assertThat(issuedCount).isEqualTo(1);
+            assertThat(coupon.getIssuedQuantity()).isEqualTo(1);
+            assertThat(exceptions).hasSize(requestCount - 1);
+        }
+
+        @Test
+        @DisplayName("재고보다 많은 유저가 동시에 요청하면 재고 수량만큼만 발급되어야 한다")
+        void givenExceedingUsers_whenConcurrentIssue_thenIssuesOnlyAvailableQuantity() throws InterruptedException {
+            // given
+            int availableQuantity = 50;
+            int requestingUserCount = 70;
+            List<User> newUsers = createAndSaveUsers(requestingUserCount, "over");
+            Long overSubCouponId = createAndSaveCoupon(availableQuantity);
+
+            ExecutorService executorService = Executors.newFixedThreadPool(32);
+            CountDownLatch latch = new CountDownLatch(requestingUserCount);
+            List<Throwable> exceptions = new CopyOnWriteArrayList<>();
+
+            // when
+            for (User user : newUsers) {
+                executorService.submit(() -> {
+                    try {
+                        couponIssueService.issue(overSubCouponId, user);
+                    } catch (Exception e) {
+                        exceptions.add(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+
+            // then
+            Coupon coupon = getCoupon(overSubCouponId);
+            long issuedCount = issuedCouponRepository.countByCouponId(overSubCouponId);
+
+            assertThat(issuedCount).isEqualTo(availableQuantity);
+            assertThat(coupon.getIssuedQuantity()).isEqualTo(availableQuantity);
+            assertThat(exceptions).hasSize(requestingUserCount - availableQuantity);
+        }
     }
 
-    @Test
-    @DisplayName("한 명의 유저가 동시에 여러 번 발급을 요청해도 한 장만 발급된다")
-    void issue_issuesOnlyOneCoupon_whenSameUserRequestsConcurrently() throws InterruptedException {
-        // given
-        int requestCount = 10;
-        User user = users.get(0);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        CountDownLatch latch = new CountDownLatch(requestCount);
-        final List<Throwable> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
+    // --- 테스트 헬퍼 메서드 ---
 
-        // when
-        for (int i = 0; i < requestCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    couponIssueService.issue(couponId, user);
-                } catch (Exception e) {
-                    exceptions.add(e);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-        executorService.shutdown();
-
-        // then
-        Coupon coupon = couponRepository.findActiveById(couponId)
-                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
-        long issuedCount = issuedCouponRepository.count();
-
-        assertThat(issuedCount).isEqualTo(1);
-        assertThat(coupon.getIssuedQuantity()).isEqualTo(1);
-        assertThat(exceptions).hasSize(requestCount - 1);
+    private void setupClock(LocalDateTime dateTime) {
+        Instant fixedInstant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
+        given(clock.instant()).willReturn(fixedInstant);
+        given(clock.getZone()).willReturn(ZoneId.systemDefault());
     }
 
-        
+    private void prepareTestData() {
+        couponId = createAndSaveCoupon(threadCount);
+        users.addAll(createAndSaveUsers(threadCount, "user"));
+    }
 
-    @Test
-    @DisplayName("쿠폰 수량보다 많은 유저가 동시에 발급을 요청해도, 수량만큼만 발급된다")
-    void issue_issuesOnlyAvailableQuantity_whenMoreUsersRequestThanAvailable() throws InterruptedException {
-        // given
-        int availableQuantity = 50;
-        int requestingUserCount = 70;
-        List<User> newUsers = new ArrayList<>();
-        List<User> userList = new ArrayList<>();
-        for (int i = 0; i < requestingUserCount; i++) {
-            userList.add(User.create("over" + i + "@test.com", "pw", "테스터" + i));
+    private Long createAndSaveCoupon(int quantity) {
+        Coupon coupon = Coupon.create("29CM", "선착순 쿠폰", "요약", "상세", quantity, now.minusDays(1), now.plusDays(1));
+        return couponRepository.save(coupon).getId();
+    }
+
+    private List<User> createAndSaveUsers(int count, String prefix) {
+        List<User> list = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            list.add(User.create(prefix + i + "@test.com", "pw", "테스터" + i));
         }
-        newUsers.addAll(userRepository.saveAll(userList));
+        return userRepository.saveAll(list);
+    }
 
-        Coupon overSubCoupon = Coupon.create("브랜드명", "선착순 50명 쿠폰", "요약 설명", "상세 설명", availableQuantity, now.minusDays(1), now.plusDays(1));
-        Long overSubCouponId = couponRepository.save(overSubCoupon).getId();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(32);
-        CountDownLatch latch = new CountDownLatch(requestingUserCount);
-        final List<Throwable> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
-
-        // when
-        for (User user : newUsers) {
-            executorService.submit(() -> {
-                try {
-                    couponIssueService.issue(overSubCouponId, user);
-                } catch (Exception e) {
-                    exceptions.add(e);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-        executorService.shutdown();
-
-        // then
-        Coupon coupon = couponRepository.findActiveById(overSubCouponId)
+    private Coupon getCoupon(Long id) {
+        return couponRepository.findActiveById(id)
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
-        long issuedCount = issuedCouponRepository.countByCouponId(overSubCouponId);
-
-        assertThat(issuedCount).isEqualTo(availableQuantity);
-        assertThat(coupon.getIssuedQuantity()).isEqualTo(availableQuantity);
-        assertThat(exceptions).hasSize(requestingUserCount - availableQuantity);
     }
 
 }

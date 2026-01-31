@@ -16,8 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/coupons")
 @RequiredArgsConstructor
 public class CouponAdminController {
+
     private final CouponAdminService couponAdminService;
 
+    /**
+     * 새로운 쿠폰을 생성한다.
+     *
+     * @param request 쿠폰 생성 정보
+     * @return 생성된 쿠폰 ID
+     */
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
         Long couponId = couponAdminService.createCoupon(request.toEntity());
@@ -26,4 +33,5 @@ public class CouponAdminController {
         return ResponseEntity.created(URI.create("/api/v1/admin/coupons/" + couponId))
                 .body(response);
     }
+
 }
