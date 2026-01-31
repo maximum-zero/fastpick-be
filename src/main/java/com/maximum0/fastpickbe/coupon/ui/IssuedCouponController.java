@@ -3,7 +3,7 @@ package com.maximum0.fastpickbe.coupon.ui;
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
 import com.maximum0.fastpickbe.common.dto.PageResponse;
 import com.maximum0.fastpickbe.common.response.ApiResponse;
-import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
+import com.maximum0.fastpickbe.coupon.application.service.IssuedCouponService;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
 import com.maximum0.fastpickbe.user.domain.model.User;
@@ -16,23 +16,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 사용자의 보유 쿠폰 관련 API를 처리하는 컨트롤러입니다.
- */
 @RestController
 @RequestMapping("/api/v1/my/coupons")
 @RequiredArgsConstructor
-public class MyCouponController {
+public class IssuedCouponController {
 
-    private final MyCouponService myCouponService;
+    private final IssuedCouponService issuedCouponService;
 
     /**
-     * 현재 로그인된 사용자의 쿠폰 목록을 조회합니다.
+     * 현재 로그인된 사용자의 쿠폰 목록을 조회한다.
      *
-     * @param user     현재 로그인된 사용자
-     * @param request  검색 조건
-     * @param pageable 페이징 정보
-     * @return 페이징된 내 쿠폰 목록
+     * @param user     현재 로그인된 사용자 (@LoginUser)
+     * @param request  검색 및 필터 조건
+     * @param pageable 페이징 및 정렬 정보
+     * @return 페이징 처리된 내 쿠폰 목록을 담은 공통 응답
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<MyCouponResponse>>> getMyCoupons(
@@ -40,6 +37,8 @@ public class MyCouponController {
             @Valid MyCouponListRequest request,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(myCouponService.getMyCoupons(user, request, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(
+                issuedCouponService.getIssuedCoupons(user, request, pageable)));
     }
+
 }

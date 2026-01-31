@@ -19,10 +19,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Entity
-@Table(name = "tb_coupon")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "tb_coupon")
 public class Coupon extends BaseEntity {
 
     @Id
@@ -51,9 +51,6 @@ public class Coupon extends BaseEntity {
     private int limitPerUser;
 
     @Column(nullable = false)
-    private boolean isSoldOut;
-
-    @Column(nullable = false)
     private LocalDateTime startAt;
 
     @Column(nullable = false)
@@ -62,6 +59,8 @@ public class Coupon extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponUseStatus useStatus;
+
+    // --- 생성자 ---
 
     @Builder(access = AccessLevel.PRIVATE)
     public Coupon(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt, CouponUseStatus useStatus) {
@@ -73,13 +72,16 @@ public class Coupon extends BaseEntity {
         this.totalQuantity = totalQuantity;
         this.issuedQuantity = issuedQuantity;
         this.limitPerUser = 1;
-        this.isSoldOut = false;
         this.startAt = startAt;
         this.endAt = endAt;
         this.useStatus = useStatus;
     }
 
     // --- 정적 팩토리 메서드 ---
+
+    /**
+     * 쿠폰을 객체를 생성한다. (비즈니스 로직)
+     */
     public static Coupon create(String brand, String title, String summary, String description, int totalQuantity, LocalDateTime startAt, LocalDateTime endAt) {
         return Coupon.builder()
                 .brand(brand)
@@ -94,20 +96,9 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
-    public static Coupon create(String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt) {
-        return Coupon.builder()
-                .brand(brand)
-                .title(title)
-                .summary(summary)
-                .description(description)
-                .totalQuantity(totalQuantity)
-                .issuedQuantity(issuedQuantity)
-                .startAt(startAt)
-                .endAt(endAt)
-                .useStatus(CouponUseStatus.AVAILABLE)
-                .build();
-    }
-
+    /**
+     * 쿠폰을 객체를 생성한다. (테스트 코드)
+     */
     public static Coupon forTest(Long id, String brand, String title, String summary, String description, int totalQuantity, int issuedQuantity, LocalDateTime startAt, LocalDateTime endAt, CouponUseStatus useStatus) {
         return Coupon.builder()
                 .id(id)
@@ -123,55 +114,14 @@ public class Coupon extends BaseEntity {
                 .build();
     }
 
-    // --- 상태 확인 및 계산 로직 ---
-
-    /**
-     * 쿠폰이 발행 대기 상태(시작 전)인지 확인합니다.
-     * @param now 기준 시간
-     * @return 현재 시각 < 시작 시각이면 true
-     */
-    public boolean isReady(LocalDateTime now) {
-        return now.isBefore(startAt);
-    }
-
-    /**
-     * 쿠폰이 발행 만료 상태인지 확인합니다.
-     * @param now 기준 시간
-     * @return 현재 시각 >= 종료 시각이면 true
-     */
-    public boolean isExpired(LocalDateTime now) {
-        return !now.isBefore(endAt);
-    }
-
-    /**
-     * 쿠폰이 소진(품절) 상태인지 확인합니다.
-     * @return 발행 수량 >= 전체 수량이면 true
-     */
-    public boolean isExhausted() {
-        return issuedQuantity >= totalQuantity;
-    }
-
-    /**
-     * 현재 쿠폰의 상태를 동적으로 계산하여 반환합니다.
-     * @param now 기준 시간
-     * @return 쿠폰의 현재 상태 (READY, ISSUING, EXHAUSTED, EXPIRED, DISABLED)
-     */
-    public CouponStatus calculateStatus(LocalDateTime now) {
-        if (this.useStatus == CouponUseStatus.DISABLED) return CouponStatus.DISABLED;
-        if (isReady(now)) return CouponStatus.READY;
-        if (isExpired(now)) return CouponStatus.EXPIRED;
-        if (isExhausted()) return CouponStatus.EXHAUSTED;
-        return CouponStatus.ISSUING;
-    }
-
     // --- 비즈니스 행위 로직 ---
 
     /**
-     * 쿠폰 발행 조건을 검증합니다.
+     * 쿠폰 발급 조건을 검증한다.
      * @param now 기준 시간
-     * @throws BusinessException 조건 위반 시 적절한 에러 발생
+     * @throws BusinessException 발급 조건 미충족 시 발생
      */
-    public void validateIssuanceCondition(LocalDateTime now) {
+    public void validateIssuable(LocalDateTime now) {
         if (this.useStatus == CouponUseStatus.DISABLED) {
             throw new BusinessException(ErrorCode.COUPON_DISABLED);
         }
@@ -184,25 +134,52 @@ public class Coupon extends BaseEntity {
     }
 
     /**
-     * 쿠폰을 발급합니다.
-     * 발급 조건을 검증한 후, 발급된 쿠폰 수량을 1 증가시킵니다.
-     * @param now 기준 시간
+     * 쿠폰을 발급한다.
+     * 발급 조건을 검증한 후 발급 수량을 1 증가시킨다.
+     * @param now 발급 시점
      */
     public void issue(LocalDateTime now) {
-        validateIssuanceCondition(now);
+        validateIssuable(now);
         this.issuedQuantity++;
-
-        if (isExhausted()) {
-            this.isSoldOut = true;
-        }
     }
 
     /**
-     * 쿠폰을 중단(비활성화) 처리합니다.
-     * 관리자에 의해 쿠폰 발급 및 조회를 제한할 때 사용합니다.
+     * 쿠폰을 비활성화(발급 중단) 처리한다.
      */
     public void disable() {
         this.useStatus = CouponUseStatus.DISABLED;
+    }
+
+    // --- 상태 판별 및 계산 로직 ---
+
+    /**
+     * 현재 쿠폰의 비즈니스 상태를 계산한다.
+     * @param now 기준 시각
+     * @return 쿠폰 상태 (READY, ISSUING, EXHAUSTED, EXPIRED, DISABLED)
+     */
+    public CouponStatus calculateStatus(LocalDateTime now) {
+        return CouponStatus.of(this, now);
+    }
+
+    /**
+     * 쿠폰이 발급 대기 상태인지 확인한다.
+     */
+    public boolean isReady(LocalDateTime now) {
+        return now.isBefore(startAt);
+    }
+
+    /**
+     * 쿠폰이 기간 만료 상태인지 확인한다.
+     */
+    public boolean isExpired(LocalDateTime now) {
+        return !now.isBefore(endAt);
+    }
+
+    /**
+     * 쿠폰 수량이 모두 소진되었는지 확인한다.
+     */
+    public boolean isExhausted() {
+        return issuedQuantity >= totalQuantity;
     }
 
 }

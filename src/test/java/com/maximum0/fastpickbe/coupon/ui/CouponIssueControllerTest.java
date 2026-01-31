@@ -16,17 +16,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
 import com.maximum0.fastpickbe.common.exception.BusinessException;
 import com.maximum0.fastpickbe.common.exception.ErrorCode;
+import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
 import com.maximum0.fastpickbe.coupon.application.service.CouponIssueService;
 import com.maximum0.fastpickbe.coupon.ui.dto.CouponIssueRequest;
 import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
-@DisplayName("쿠폰 발급 컨트롤러 단위 테스트")
+@DisplayName("Coupon Issue Controller 슬라이스 테스트")
 class CouponIssueControllerTest extends BaseRestDocsTest {
 
     private final CouponIssueService couponIssueService = Mockito.mock(CouponIssueService.class);
@@ -37,15 +39,15 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 발급 요청 테스트")
-    class IssueCouponApiTest {
+    @DisplayName("쿠폰 발급 요청 시나리오 테스트")
+    class Issue_Coupon_Scenario {
 
-        private final User testUser = User.forTest(1L, "test@test.com", "password", "테스터");
+        private final User testUser = User.forTest(1L, "test@test.com", "password", "테스터", UserRole.USER);
         private final PrincipalDetails principalDetails = new PrincipalDetails(testUser);
 
         @Test
-        @DisplayName("정상적인 쿠폰 발급 요청 시 성공 응답을 반환한다")
-        void issue_succeeds_withValidRequest() throws Exception {
+        @DisplayName("정상적인 쿠폰 발급 요청 정보가 주어지면 발급을 수행하고 200 OK를 반환한다")
+        void givenValidRequest_whenIssueCoupon_thenReturnsIssuedId() throws Exception {
             // given
             long couponId = 1L;
             long issuedCouponId = 100L;
@@ -60,7 +62,7 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value("S000"))
+                    .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
                     .andExpect(jsonPath("$.data").value(issuedCouponId))
                     .andDo(restDocument("coupon-issue/success",
                             requestHeaders(
@@ -76,11 +78,10 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("이미 발급받은 쿠폰을 요청하면 400 Bad Request 에러를 반환한다")
-        void issue_returnsBadRequest_whenCouponAlreadyIssued() throws Exception {
+        @DisplayName("이미 발급받은 쿠폰 정보가 주어지면 쿠폰 중복 발급 실패 예외를 반환한다")
+        void givenAlreadyIssuedCoupon_whenIssueCoupon_thenThrowsExceptionByAlreadyIssued() throws Exception {
             // given
-            long couponId = 1L;
-            CouponIssueRequest request = new CouponIssueRequest(couponId);
+            CouponIssueRequest request = new CouponIssueRequest(1L);
             ErrorCode errorCode = ErrorCode.ALREADY_ISSUED_COUPON;
 
             given(couponIssueService.issue(anyLong(), any(User.class)))
@@ -101,11 +102,10 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 쿠폰 ID로 요청하면 404 Not Found 에러를 반환한다")
-        void issue_returnsNotFound_whenCouponNotFound() throws Exception {
+        @DisplayName("존재하지 않는 쿠폰 ID가 주어지면 쿠폰 조회 실패 예외를 반환한다")
+        void givenNonExistentId_whenIssueCoupon_thenThrowsExceptionByCouponNotFound() throws Exception {
             // given
-            long couponId = 999L;
-            CouponIssueRequest request = new CouponIssueRequest(couponId);
+            CouponIssueRequest request = new CouponIssueRequest(999L);
             ErrorCode errorCode = ErrorCode.COUPON_NOT_FOUND;
 
             given(couponIssueService.issue(anyLong(), any(User.class)))
@@ -123,12 +123,12 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
                             responseFields(errorFields())
                     ));
         }
+
         @Test
-        @DisplayName("쿠폰 수량이 소진된 경우 400 Bad Request 에러를 반환한다")
-        void issue_returnsBadRequest_whenQuantityExhausted() throws Exception {
+        @DisplayName("재고가 소진된 쿠폰 정보가 주어지면 쿠폰 수량 소진 예외를 반환한다")
+        void givenExhaustedQuantity_whenIssueCoupon_thenThrowsExceptionByQuantityExhausted() throws Exception {
             // given
-            long couponId = 1L;
-            CouponIssueRequest request = new CouponIssueRequest(couponId);
+            CouponIssueRequest request = new CouponIssueRequest(1L);
             ErrorCode errorCode = ErrorCode.COUPON_EXHAUSTED;
 
             given(couponIssueService.issue(anyLong(), any(User.class)))
@@ -147,4 +147,5 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
                     ));
         }
     }
+
 }

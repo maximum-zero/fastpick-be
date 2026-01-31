@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
+
     private final UserJpaRepository userJpaRepository;
 
     @Override
@@ -46,4 +47,5 @@ public class UserRepositoryImpl implements UserRepository {
     public void deleteAllInBatch() {
         userJpaRepository.deleteAllInBatch();
     }
+
 }

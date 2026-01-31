@@ -1,4 +1,4 @@
-package com.maximum0.fastpickbe.coupon.infra;
+package com.maximum0.fastpickbe.coupon.infra.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -6,8 +6,8 @@ import com.maximum0.fastpickbe.common.config.JpaConfig;
 import com.maximum0.fastpickbe.common.config.QuerydslConfig;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.IssuedCoupon;
-import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
-import com.maximum0.fastpickbe.coupon.infra.repository.IssuedCouponRepositoryImpl;
+import com.maximum0.fastpickbe.coupon.domain.repository.IssuedCouponRepository;
+import com.maximum0.fastpickbe.coupon.domain.vo.IssuedCouponFilterType;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponListRequest;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import java.time.LocalDateTime;
@@ -28,11 +28,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({IssuedCouponRepositoryImpl.class, JpaConfig.class, QuerydslConfig.class})
-@DisplayName("IssuedCoupon Repository 단위 테스트")
+@DisplayName("IssuedCoupon Repository 슬라이스 테스트")
 class IssuedCouponRepositoryTest {
 
     @Autowired
-    private IssuedCouponRepositoryImpl issuedCouponRepository;
+    private IssuedCouponRepository issuedCouponRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -40,19 +40,16 @@ class IssuedCouponRepositoryTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Nested
-    @DisplayName("중복 발급 체크 테스트")
-    class DuplicationCheckTest {
+    @DisplayName("중복 발급 체크 시나리오 테스트")
+    class Duplication_Check_Scenario {
 
         private User user;
         private Coupon coupon;
 
         @BeforeEach
         void setUp() {
-            user = User.create("test@test.com", "encodedPassword", "테스터");
-            entityManager.persist(user);
-
-            coupon = Coupon.create("브랜드", "테스트쿠폰", "요약 설명", "상세 설명", 100, now, now.plusDays(1));
-            entityManager.persist(coupon);
+            user = entityManager.persist(User.create("test@test.com", "pw", "테스터"));
+            coupon = entityManager.persist(Coupon.create("브랜드", "테스트쿠폰", "요약", "상세", 100, now, now.plusDays(1)));
 
             entityManager.flush();
             entityManager.clear();
@@ -60,16 +57,15 @@ class IssuedCouponRepositoryTest {
 
         @Test
         @DisplayName("유저가 이미 쿠폰을 발급받았다면 true를 반환한다")
-        void existsByUserAndCoupon_returnsTrue_whenRecordExists() {
+        void givenIssuedRecord_whenExistsByUserAndCoupon_thenReturnsTrue() {
             // given
-            User user = entityManager.find(User.class, this.user.getId());
-            Coupon coupon = entityManager.find(Coupon.class, this.coupon.getId());
-            IssuedCoupon issuedCoupon = IssuedCoupon.create(user, coupon);
-            issuedCouponRepository.save(issuedCoupon);
+            User targetUser = entityManager.find(User.class, user.getId());
+            Coupon targetCoupon = entityManager.find(Coupon.class, coupon.getId());
+            issuedCouponRepository.save(IssuedCoupon.create(targetUser, targetCoupon));
             entityManager.flush();
 
             // when
-            boolean exists = issuedCouponRepository.existsByUserAndCoupon(user, coupon);
+            boolean exists = issuedCouponRepository.existsByUserAndCoupon(targetUser, targetCoupon);
 
             // then
             assertThat(exists).isTrue();
@@ -77,13 +73,13 @@ class IssuedCouponRepositoryTest {
 
         @Test
         @DisplayName("발급 이력이 없다면 false를 반환한다")
-        void existsByUserAndCoupon_returnsFalse_whenRecordNotExists() {
+        void givenNoRecord_whenExistsByUserAndCoupon_thenReturnsFalse() {
             // given
-            User user = entityManager.find(User.class, this.user.getId());
-            Coupon coupon = entityManager.find(Coupon.class, this.coupon.getId());
+            User targetUser = entityManager.find(User.class, user.getId());
+            Coupon targetCoupon = entityManager.find(Coupon.class, coupon.getId());
 
             // when
-            boolean exists = issuedCouponRepository.existsByUserAndCoupon(user, coupon);
+            boolean exists = issuedCouponRepository.existsByUserAndCoupon(targetUser, targetCoupon);
 
             // then
             assertThat(exists).isFalse();
@@ -91,29 +87,29 @@ class IssuedCouponRepositoryTest {
     }
 
     @Nested
-    @DisplayName("내 쿠폰 목록 조회 테스트")
-    class FindMyCouponsTest {
+    @DisplayName("내 쿠폰 목록 조회 시나리오 테스트")
+    class Find_My_Coupons_Scenario {
         private User user1;
-        private User user2;
         private Coupon couponA;
 
         @BeforeEach
         void setUp() {
             user1 = entityManager.persist(User.create("user1@test.com", "pw", "유저1"));
-            user2 = entityManager.persist(User.create("user2@test.com", "pw", "유저2"));
+            User user2 = entityManager.persist(User.create("user2@test.com", "pw", "유저2"));
 
-            couponA = entityManager.persist(Coupon.create("브랜드", "할인쿠폰A", "요약 설명", "상세 설명", 100, now.minusDays(10), now.plusDays(10)));
-            Coupon couponB = entityManager.persist(Coupon.create("브랜드", "할인쿠폰B", "요약 설명", "상세 설명", 100, now.minusDays(10), now.plusDays(10)));
-            Coupon expiredCoupon = entityManager.persist(Coupon.create("브랜드", "만료된쿠폰", "요약 설명", "상세 설명", 100, now.minusDays(20), now.minusDays(10)));
+            couponA = entityManager.persist(Coupon.create("브랜드", "할인쿠폰A", "요약", "상세", 100, now.minusDays(10), now.plusDays(10)));
+            Coupon couponB = entityManager.persist(Coupon.create("브랜드", "할인쿠폰B", "요약", "상세", 100, now.minusDays(10), now.plusDays(10)));
+            Coupon expiredCoupon = entityManager.persist(Coupon.create("브랜드", "만료된쿠폰", "요약", "상세", 100, now.minusDays(20), now.minusDays(10)));
 
+            // 발급 이력 생성 및 영속화
             IssuedCoupon issued1 = IssuedCoupon.create(user1, couponA);
             IssuedCoupon issued2 = IssuedCoupon.create(user1, couponB);
-            issued2.use(now);
+            issued2.use(now); // 사용 완료 처리
             IssuedCoupon issued3 = IssuedCoupon.create(user1, expiredCoupon);
+
             entityManager.persist(issued1);
             entityManager.persist(issued2);
             entityManager.persist(issued3);
-
             entityManager.persist(IssuedCoupon.create(user2, couponA));
 
             entityManager.flush();
@@ -121,10 +117,10 @@ class IssuedCouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("user1로 조회하면, user1에게 발급된 모든 쿠폰 3개가 조회된다.")
-        void findMyCoupons_returnsAllCoupons_forUser1() {
+        @DisplayName("전체 필터로 조회하면, 사용자가 보유한 모든 쿠폰 목록이 반환된다")
+        void givenFilterAll_whenFindAllByUser_thenReturnsAllCoupons() {
             // given
-            MyCouponListRequest request = new MyCouponListRequest(null, MyCouponStatusFilter.ALL);
+            MyCouponListRequest request = new MyCouponListRequest(null, IssuedCouponFilterType.ALL);
             PageRequest pageable = PageRequest.of(0, 10);
             User userToFind = entityManager.find(User.class, user1.getId());
 
@@ -137,10 +133,10 @@ class IssuedCouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("쿠폰 제목으로 검색하면, 해당 쿠폰만 조회된다.")
-        void findMyCoupons_returnsFilteredCoupons_byTitle() {
+        @DisplayName("쿠폰 제목 키워드로 조회하면, 해당 제목을 포함한 쿠폰만 반환된다")
+        void givenTitleKeyword_whenFindAllByUser_thenReturnsFilteredByTitle() {
             // given
-            MyCouponListRequest request = new MyCouponListRequest("쿠폰A", MyCouponStatusFilter.ALL);
+            MyCouponListRequest request = new MyCouponListRequest("쿠폰A", IssuedCouponFilterType.ALL);
             PageRequest pageable = PageRequest.of(0, 10);
             User userToFind = entityManager.find(User.class, user1.getId());
 
@@ -153,10 +149,10 @@ class IssuedCouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("'사용 가능' 상태로 필터링하면, 사용하지 않았고 만료되지 않은 쿠폰 1개가 조회된다.")
-        void findMyCoupons_returnsAvailableCoupons_whenFilteredByAvailable() {
+        @DisplayName("사용 가능 필터로 조회하면, 미사용이며 기간 내인 쿠폰만 반환된다")
+        void givenFilterAvailable_whenFindAllByUser_thenReturnsAvailableCoupons() {
             // given
-            MyCouponListRequest request = new MyCouponListRequest(null, MyCouponStatusFilter.AVAILABLE);
+            MyCouponListRequest request = new MyCouponListRequest(null, IssuedCouponFilterType.AVAILABLE);
             PageRequest pageable = PageRequest.of(0, 10);
             User userToFind = entityManager.find(User.class, user1.getId());
 
@@ -169,10 +165,10 @@ class IssuedCouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("'만료' 상태로 필터링하면, 사용했거나 기간이 지난 쿠폰 2개가 조회된다.")
-        void findMyCoupons_returnsExpiredCoupons_whenFilteredByExpired() {
+        @DisplayName("만료 필터로 조회하면, 사용 완료되었거나 기간이 지난 쿠폰이 반환된다")
+        void givenFilterExpired_whenFindAllByUser_thenReturnsExpiredOrUsedCoupons() {
             // given
-            MyCouponListRequest request = new MyCouponListRequest(null, MyCouponStatusFilter.EXPIRED);
+            MyCouponListRequest request = new MyCouponListRequest(null, IssuedCouponFilterType.EXPIRED);
             PageRequest pageable = PageRequest.of(0, 10);
             User userToFind = entityManager.find(User.class, user1.getId());
 
@@ -184,10 +180,10 @@ class IssuedCouponRepositoryTest {
         }
 
         @Test
-        @DisplayName("'사용 완료' 상태로 필터링하면, 사용한 쿠폰 1개가 조회된다.")
-        void findMyCoupons_returnsUsedCoupons_whenFilteredByUsed() {
+        @DisplayName("사용 완료 필터로 조회하면, 이미 사용한 쿠폰 목록만 반환된다")
+        void givenFilterUsed_whenFindAllByUser_thenReturnsUsedCoupons() {
             // given
-            MyCouponListRequest request = new MyCouponListRequest(null, MyCouponStatusFilter.USED);
+            MyCouponListRequest request = new MyCouponListRequest(null, IssuedCouponFilterType.USED);
             PageRequest pageable = PageRequest.of(0, 10);
             User userToFind = entityManager.find(User.class, user1.getId());
 
@@ -199,4 +195,5 @@ class IssuedCouponRepositoryTest {
             assertThat(result.getContent().get(0).isUsed()).isTrue();
         }
     }
+
 }

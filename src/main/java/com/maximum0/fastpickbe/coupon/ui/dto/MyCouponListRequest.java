@@ -1,14 +1,14 @@
 package com.maximum0.fastpickbe.coupon.ui.dto;
 
-import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatusFilter;
+import com.maximum0.fastpickbe.coupon.domain.vo.IssuedCouponFilterType;
 
 public record MyCouponListRequest(
         String search,
-        MyCouponStatusFilter status
+        IssuedCouponFilterType status
 ) {
     public MyCouponListRequest {
         if (status == null) {
-            status = MyCouponStatusFilter.ALL;
+            status = IssuedCouponFilterType.ALL;
         }
     }
 }

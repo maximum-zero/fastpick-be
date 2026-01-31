@@ -14,28 +14,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 사용자의 보유 쿠폰 조회 관련 비즈니스 로직을 담당하는 서비스입니다.
- */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MyCouponService {
+public class IssuedCouponService {
+
     private final IssuedCouponRepository issuedCouponRepository;
     private final Clock clock;
 
     /**
-     * 현재 로그인된 사용자의 쿠폰 목록을 검색 조건에 따라 페이징하여 조회합니다.
+     * 특정 사용자의 쿠폰 발급 목록을 검색 조건에 따라 페이징하여 조회한다.
+     * 쿠폰의 제목이나 사용 가능 상태 등을 기준으로 필터링을 수행한다.
      *
-     * @param user     현재 로그인된 사용자
-     * @param request  검색 조건 (제목, 상태)
-     * @param pageable 페이징 정보
-     * @return 페이징된 내 쿠폰 응답 DTO 목록
+     * @param user     조회 대상 사용자 엔티티
+     * @param request  검색 필터 조건 (쿠폰 제목, 상태 등)
+     * @param pageable 페이징 설정 정보
+     * @return 페이징 처리된 내 쿠폰 정보(MyCouponResponse) 목록
      */
-    public PageResponse<MyCouponResponse> getMyCoupons(User user, MyCouponListRequest request, Pageable pageable) {
+    public PageResponse<MyCouponResponse> getIssuedCoupons(User user, MyCouponListRequest request, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now(clock);
         Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.findAllByUser(user, request, pageable, now);
 
         return PageResponse.from(issuedCoupons.map(ic -> MyCouponResponse.from(ic, now)));
     }
+
 }

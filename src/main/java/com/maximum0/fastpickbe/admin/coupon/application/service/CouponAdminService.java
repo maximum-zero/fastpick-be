@@ -15,14 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CouponAdminService {
+
     private final CouponRepository couponRepository;
     private final CouponKeywordRepository couponKeywordRepository;
     private final CouponKeywordManager couponKeywordManager;
 
     /**
-     * 쿠폰을 생성하고 검색 최적화를 위한 키워드 인덱스를 저장합니다.
+     * 새로운 쿠폰을 생성하고, 검색 최적화를 위한 키워드 인덱스를 저장한다.
+     *
      * @param coupon 생성할 쿠폰 엔티티
-     * @return 생성된 쿠폰 식별자
+     * @return 생성된 쿠폰의 고유 식별자(ID)
      */
     @CacheEvict(cacheNames = "coupons", allEntries = true)
     @Transactional

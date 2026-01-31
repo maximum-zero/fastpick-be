@@ -14,11 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.maximum0.fastpickbe.base.BaseRestDocsTest;
 import com.maximum0.fastpickbe.common.dto.PageResponse;
+import com.maximum0.fastpickbe.common.response.ApiResponse;
 import com.maximum0.fastpickbe.common.security.principal.PrincipalDetails;
-import com.maximum0.fastpickbe.coupon.application.service.MyCouponService;
-import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
+import com.maximum0.fastpickbe.coupon.application.service.IssuedCouponService;
+import com.maximum0.fastpickbe.coupon.domain.vo.IssuedCouponStatus;
 import com.maximum0.fastpickbe.coupon.ui.dto.MyCouponResponse;
 import com.maximum0.fastpickbe.user.domain.model.User;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -29,38 +31,30 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-@DisplayName("MyCouponController 단위 테스트")
-class MyCouponControllerTest extends BaseRestDocsTest {
+@DisplayName("Issued Coupon Controller 슬라이스 테스트")
+class IssuedCouponControllerTest extends BaseRestDocsTest {
 
-    private final MyCouponService myCouponService = Mockito.mock(MyCouponService.class);
+    private final IssuedCouponService issuedCouponService = Mockito.mock(IssuedCouponService.class);
 
     @Override
     protected Object initController() {
-        return new MyCouponController(myCouponService);
+        return new IssuedCouponController(issuedCouponService);
     }
 
     @Nested
-    @DisplayName("내 쿠폰 목록 조회 API 테스트")
-    class GetMyCouponsApiTest {
+    @DisplayName("내 쿠폰 목록 조회 시나리오 테스트")
+    class Get_My_Coupons_Scenario {
 
-        private final User testUser = User.forTest(1L, "user1@test.com", "pw", "유저1");
+        private final User testUser = User.forTest(1L, "user1@test.com", "pw", "유저1", UserRole.USER);
         private final PrincipalDetails principalDetails = new PrincipalDetails(testUser);
 
         @Test
-        @DisplayName("내 쿠폰 목록을 필터링과 함께 성공적으로 조회한다")
-        void getMyCoupons_succeeds_withValidRequest() throws Exception {
+        @DisplayName("유효한 조회 요청 정보가 주어지면 내 쿠폰 목록을 조회하고 200 OK를 반환한다")
+        void givenValidRequest_whenGetMyCoupons_thenReturnsMyCouponPage() throws Exception {
             // given
-            MyCouponResponse response = new MyCouponResponse(
-                    1L,
-                    10L,
-                    "브랜드명", "할인쿠폰A폰", "요약 설명",
-                    100,
-                    10,
-                    LocalDateTime.now().plusDays(10),
-                    MyCouponStatus.AVAILABLE
-            );
+            MyCouponResponse response = createMyCouponResponse(1L, "할인쿠폰A");
 
-            given(myCouponService.getMyCoupons(any(User.class), any(), any(Pageable.class)))
+            given(issuedCouponService.getIssuedCoupons(any(User.class), any(), any(Pageable.class)))
                     .willReturn(PageResponse.from(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1)));
 
             // when & then
@@ -72,7 +66,7 @@ class MyCouponControllerTest extends BaseRestDocsTest {
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value("S000"))
+                    .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
                     .andDo(restDocument("my-coupons/list",
                             requestHeaders(
                                     headerWithName("Authorization").description("Bearer <ACCESS_TOKEN>")
@@ -97,4 +91,15 @@ class MyCouponControllerTest extends BaseRestDocsTest {
                     ));
         }
     }
+
+    // --- 테스트 메서드 ---
+
+    private MyCouponResponse createMyCouponResponse(Long id, String title) {
+        return new MyCouponResponse(
+                id, 10L, "29CM", title, "요약 설명",
+                100, 10, LocalDateTime.now().plusDays(10),
+                IssuedCouponStatus.AVAILABLE
+        );
+    }
+
 }

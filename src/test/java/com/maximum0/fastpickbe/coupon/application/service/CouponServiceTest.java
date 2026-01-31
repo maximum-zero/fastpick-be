@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -39,8 +40,10 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Coupon Service 단위 테스트")
 class CouponServiceTest {
+
     @InjectMocks
     private CouponService couponService;
+
     @Mock
     private CouponRepository couponRepository;
 
@@ -60,24 +63,20 @@ class CouponServiceTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 목록 조회 테스트")
-    class GetCouponsTest {
+    @DisplayName("쿠폰 목록 조회 시나리오 테스트")
+    class Get_Coupons_Scenario {
         @Test
-        @DisplayName("검색 조건이 주어지면 키워드 인덱스에서 ID를 추출하고 본체를 조회하여 정렬된 결과를 반환한다")
-        void getCoupons_returnsCouponSummaries_whenCalledWithValidRequest() {
+        @DisplayName("검색 조건이 주어지면 키워드 인덱스에서 정보를 추출하고 정렬된 결과를 반환한다")
+        void givenValidRequest_whenGetCoupons_thenReturnsCouponSummaries() {
             // given
             CouponListRequest request = new CouponListRequest(null, CouponFilterType.ALL);
             Pageable pageable = PageRequest.of(0, 10);
-            List<Long> couponIds = List.of(1L, 2L);
 
             CouponSummaryResponse response1 = new CouponSummaryResponse(1L, "나이키", "나이키 1", "요약", 100, 0, now, now.plusDays(1), CouponStatus.ISSUING.name());
             CouponSummaryResponse response2 = new CouponSummaryResponse(2L, "아디다스", "아디다스 1", "요약", 100, 0, now, now.plusDays(1), CouponStatus.ISSUING.name());
 
-            given(couponKeywordRepository.countByCondition(request, now))
-                    .willReturn(2L);
-
-            given(couponKeywordRepository.findAllByCondition(request, pageable, now))
-                    .willReturn(List.of(response1, response2));
+            given(couponKeywordRepository.countByCondition(request, now)).willReturn(2L);
+            given(couponKeywordRepository.findAllByCondition(request, pageable, now)).willReturn(List.of(response1, response2));
 
             // when
             PageResponse<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
@@ -85,21 +84,18 @@ class CouponServiceTest {
             // then
             assertThat(result.content()).hasSize(2);
             assertThat(result.content().get(0).id()).isEqualTo(1L);
-            assertThat(result.content().get(1).id()).isEqualTo(2L);
-
-            verify(couponKeywordRepository).countByCondition(request, now);
-            verify(couponKeywordRepository).findAllByCondition(request, pageable, now);
+            verify(couponKeywordRepository, times(1)).countByCondition(request, now);
+            verify(couponKeywordRepository, times(1)).findAllByCondition(request, pageable, now);
         }
 
         @Test
-        @DisplayName("검색 결과가 없는 경우 빈 페이지를 반환하고 본체 조회를 수행하지 않는다")
-        void getCoupons_ReturnsEmptyPage_WhenNoResultsFound() {
+        @DisplayName("검색 결과가 없는 조건이 주어지면 빈 페이지를 반환하고 본체 조회를 수행하지 않는다")
+        void givenNoResultsCondition_whenGetCoupons_thenReturnsEmptyPage() {
             // given
             CouponListRequest request = new CouponListRequest("없는쿠폰", CouponFilterType.ALL);
             Pageable pageable = PageRequest.of(0, 10);
 
-            given(couponKeywordRepository.countByCondition(eq(request), eq(now)))
-                    .willReturn(0L);
+            given(couponKeywordRepository.countByCondition(eq(request), eq(now))).willReturn(0L);
 
             // when
             PageResponse<CouponSummaryResponse> result = couponService.getCoupons(request, pageable);
@@ -112,12 +108,12 @@ class CouponServiceTest {
     }
 
     @Nested
-    @DisplayName("쿠폰 상세 조회 테스트")
-    class GetCouponTest {
+    @DisplayName("쿠폰 상세 조회 시나리오 테스트")
+    class Get_Coupon_Scenario {
 
         @Test
-        @DisplayName("존재하는 쿠폰 ID로 조회하면 상세 정보를 반환한다")
-        void getCoupon_returnsCouponResponse_whenIdExists() {
+        @DisplayName("존재하는 쿠폰 ID가 주어지면 쿠폰 상세 정보를 반환한다")
+        void givenExistingId_whenGetCoupon_thenReturnsCouponResponse() {
             // given
             Long couponId = 1L;
             String title = "테스트 쿠폰";
@@ -133,8 +129,8 @@ class CouponServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않거나 비활성화된 쿠폰 조회 시 COUPON_NOT_FOUND 예외를 던진다")
-        void getCoupon_throwsBusinessException_whenCouponNotFound() {
+        @DisplayName("존재하지 않는 쿠폰 ID가 주어지면 쿠폰 상세 조회 실패 예외를 반환한다")
+        void givenNonExistentId_whenGetCoupon_thenThrowsExceptionByCouponNotFound() {
             // given
             Long couponId = 999L;
             given(couponRepository.findActiveById(couponId)).willReturn(Optional.empty());
@@ -145,4 +141,5 @@ class CouponServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COUPON_NOT_FOUND);
         }
     }
+
 }

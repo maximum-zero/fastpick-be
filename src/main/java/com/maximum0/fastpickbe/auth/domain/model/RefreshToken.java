@@ -17,8 +17,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tb_refresh_token")
 public class RefreshToken extends BaseEntity {
@@ -37,13 +37,21 @@ public class RefreshToken extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime expiryAt;
 
+    // --- 생성자 ---
+
     @Builder(access = AccessLevel.PRIVATE)
-    private RefreshToken(String token, User user, LocalDateTime expiryAt) {
+    private RefreshToken(Long id, String token, User user, LocalDateTime expiryAt) {
+        this.id = id;
         this.token = token;
         this.user = user;
         this.expiryAt = expiryAt;
     }
 
+    // --- 정적 팩토리 메서드 ---
+
+    /**
+     * 리프레시 토큰 객체를 생성한다. (비즈니스)
+     */
     public static RefreshToken create(String token, User user, LocalDateTime expiryAt) {
         return RefreshToken.builder()
                 .token(token)
@@ -52,22 +60,36 @@ public class RefreshToken extends BaseEntity {
                 .build();
     }
 
-    // --- 비즈니스 로직 ---
+    /**
+     * 리프레시 토큰 객체를 생성한다. (테스트 코드)
+     */
+    public static RefreshToken forTest(Long id, String token, User user, LocalDateTime expiryAt) {
+        return RefreshToken.builder()
+                .id(id)
+                .token(token)
+                .user(user)
+                .expiryAt(expiryAt)
+                .build();
+    }
+
+    // --- 비즈니스 행위 로직 ---
 
     /**
-     * 리프레시 토큰의 정보를 업데이트합니다.
+     * 리프레시 토큰 정보를 갱신한다.
      * @param newToken 새로운 토큰 문자열
-     * @param newExpiryAt 새로운 만료 시간
+     * @param newExpiryAt 새로운 만료 시각
      */
     public void update(String newToken, LocalDateTime newExpiryAt) {
         this.token = newToken;
         this.expiryAt = newExpiryAt;
     }
 
+    // --- 상태 판별 및 계산 로직 ---
+
     /**
-     * 리프레시 토큰이 만료되었는지 확인합니다.
-     * @param now 기준 시간
-     * @return 현재 시각 > 만료 시각이면 true
+     * 토큰이 만료되었는지 확인한다.
+     * @param now 기준 시각
+     * @return 만료 여부
      */
     public boolean isExpired(LocalDateTime now) {
         return now.isAfter(this.expiryAt);

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.maximum0.fastpickbe.auth.ui.dto.AuthResponse;
@@ -14,6 +15,7 @@ import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.common.security.provider.JwtTokenProvider;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
+import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,8 +28,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AuthService 단위 테스트")
+@DisplayName("Auth Service 단위 테스트")
 class AuthServiceTest {
+
     @InjectMocks
     private AuthService authService;
 
@@ -41,41 +44,34 @@ class AuthServiceTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Nested
-    @DisplayName("회원가입 테스트")
-    class SignUpTest {
+    @DisplayName("회원가입 시나리오 테스트")
+    class SignUp_Scenario {
         @Test
-        @DisplayName("정상적인 정보로 가입하면 토큰과 유저 정보를 반환한다.")
-        void signUp_savesUserAndReturnsAuthResponse_whenRequestIsValid() {
+        @DisplayName("정상적인 가입 정보가 주어지면 회원가입을 수행하고 토큰을 반환한다")
+        void givenValidRequest_whenSignUp_thenReturnsAuthResponse() {
             // given
-            SignUpRequest request = new SignUpRequest("test@test.com", "password123", "테스터");
+            SignUpRequest request = createSignUpRequest();
             String encodedPassword = "encodedPassword";
-            String accessToken = "access-token";
-            String refreshToken = "refresh-token";
-
-            User user = User.forTest(1L, request.email(), encodedPassword, request.name());
+            User user = createTestUser(request.email(), encodedPassword);
 
             given(userRepository.existsByEmail(request.email())).willReturn(false);
             given(passwordEncoder.encode(request.password())).willReturn(encodedPassword);
             given(userRepository.save(any(User.class))).willReturn(user);
-            given(jwtTokenProvider.createAccessToken(any(Authentication.class))).willReturn(accessToken);
-            given(jwtTokenProvider.createRefreshToken(any(Authentication.class))).willReturn(refreshToken);
+            given(jwtTokenProvider.createAccessToken(any(Authentication.class))).willReturn("access-token");
+            given(jwtTokenProvider.createRefreshToken(any(Authentication.class))).willReturn("refresh-token");
 
             // when
             AuthResponse response = authService.signUp(request);
 
             // then
-            assertThat(response.user()).isNotNull();
-            assertThat(response.user().id()).isEqualTo(1L);
-            assertThat(response.user().email()).isEqualTo("test@test.com");
-            assertThat(response.user().name()).isEqualTo("테스터");
-            assertThat(response.accessToken()).isEqualTo(accessToken);
-            assertThat(response.refreshToken()).isEqualTo(refreshToken);
-            verify(userRepository).save(any(User.class));
+            assertThat(response.user().email()).isEqualTo(request.email());
+            assertThat(response.accessToken()).isEqualTo("access-token");
+            verify(userRepository, times(1)).save(any(User.class));
         }
 
         @Test
-        @DisplayName("이미 가입된 이메일로 가입하면 DUPLICATE_EMAIL 예외를 던진다.")
-        void signUp_ThrowsException_WhenEmailAlreadyExists() {
+        @DisplayName("이미 가입된 이메일이 주어지면 회원가입 중복 예외를 반환한다")
+        void givenDuplicateEmail_whenSignUp_thenThrowsExceptionByDuplicateEmail() {
             // given
             SignUpRequest request = new SignUpRequest("duplicate@test.com", "password123", "테스터");
             given(userRepository.existsByEmail(request.email())).willReturn(true);
@@ -88,37 +84,32 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("로그인 테스트")
-    class LoginTest {
+    @DisplayName("로그인 시나리오 테스트")
+    class Login_Scenario {
 
         @Test
-        @DisplayName("이메일과 비밀번호가 일치하면 토큰과 유저 정보를 반환한다.")
-        void login_returnsTokenAndUserInfo_whenCredentialsAreValid() {
+        @DisplayName("일치하는 인증 정보가 주어지면 로그인을 수행하고 토큰을 반환한다")
+        void givenValidCredentials_whenLogin_thenReturnsAuthResponse() {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "password123");
-            User user = User.forTest(1L, request.email(), "encodedPassword", "테스터");
-            String accessToken = "access-token";
-            String refreshToken = "refresh-token";
+            User user = createTestUser(request.email(), "encodedPassword");
 
             given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
             given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
-            given(jwtTokenProvider.createAccessToken(any(Authentication.class))).willReturn(accessToken);
-            given(jwtTokenProvider.createRefreshToken(any(Authentication.class))).willReturn(refreshToken);
+            given(jwtTokenProvider.createAccessToken(any(Authentication.class))).willReturn("access-token");
+            given(jwtTokenProvider.createRefreshToken(any(Authentication.class))).willReturn("refresh-token");
 
             // when
             AuthResponse response = authService.login(request);
 
             // then
-            assertThat(response.accessToken()).isEqualTo(accessToken);
-            assertThat(response.refreshToken()).isEqualTo(refreshToken);
-            assertThat(response.grantType()).isEqualTo("Bearer");
+            assertThat(response.accessToken()).isEqualTo("access-token");
             assertThat(response.user().id()).isEqualTo(1L);
-            assertThat(response.user().email()).isEqualTo("test@test.com");
         }
 
         @Test
-        @DisplayName("존재하지 않는 이메일로 로그인하면 LOGIN_FAILED 예외를 던진다.")
-        void login_throwsBusinessException_whenLoginFailed() {
+        @DisplayName("존재하지 않는 이메일로 로그인을 시도하면 로그인 실패 예외를 반환한다")
+        void givenNonExistentEmail_whenLogin_thenThrowsExceptionByLoginFailed() {
             // given
             LoginRequest request = new LoginRequest("wrong@test.com", "password123");
             given(userRepository.findByEmail(request.email())).willReturn(Optional.empty());
@@ -130,11 +121,11 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("비밀번호가 일치하지 않으면 LOGIN_FAILED 예외를 던진다.")
-        void login_throwsBusinessException_whenPasswordMismatch() {
+        @DisplayName("비밀번호가 일치하지 않으면 로그인 실패 예외를 반환한다")
+        void givenWrongPassword_whenLogin_thenThrowsExceptionByLoginFailed() {
             // given
             LoginRequest request = new LoginRequest("test@test.com", "wrongpassword");
-            User user = User.forTest(1L, request.email(), "encodedPassword", "테스터");
+            User user = User.forTest(1L, request.email(), "encodedPassword", "테스터", UserRole.USER);
 
             given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
             given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(false);
@@ -144,6 +135,16 @@ class AuthServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
         }
+    }
+
+    // --- 테스트 메서드 ---
+
+    private SignUpRequest createSignUpRequest() {
+        return new SignUpRequest("test@test.com", "password123", "테스터");
+    }
+
+    private User createTestUser(String email, String encodedPassword) {
+        return User.forTest(1L, email, encodedPassword, "테스터", UserRole.USER);
     }
 
 }

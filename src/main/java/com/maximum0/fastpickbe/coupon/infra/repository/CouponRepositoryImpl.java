@@ -5,6 +5,7 @@ import static com.maximum0.fastpickbe.coupon.domain.model.QCoupon.coupon;
 import com.maximum0.fastpickbe.coupon.domain.model.Coupon;
 import com.maximum0.fastpickbe.coupon.domain.repository.CouponRepository;
 import com.maximum0.fastpickbe.coupon.domain.vo.CouponUseStatus;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
@@ -14,24 +15,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class CouponRepositoryImpl implements CouponRepository {
+
     private final CouponJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
 
-    /**
-     * 쿠폰을 저장합니다.
-     * @param coupon 저장할 쿠폰 엔티티
-     * @return 저장된 쿠폰 엔티티
-     */
     @Override
     public Coupon save(Coupon coupon) {
         return jpaRepository.save(coupon);
     }
 
-    /**
-     * 활성화된 쿠폰을 조회합니다.
-     * @param id 쿠폰 식별자
-     * @return 중단(DISABLED)되지 않은 쿠폰의 Optional 객체
-     */
     @Override
     public Optional<Coupon> findActiveById(Long id) {
         return Optional.ofNullable(
@@ -39,17 +31,12 @@ public class CouponRepositoryImpl implements CouponRepository {
                         .selectFrom(coupon)
                         .where(
                                 coupon.id.eq(id),
-                                coupon.useStatus.ne(CouponUseStatus.DISABLED)
+                                isAvailable()
                         )
                         .fetchOne()
         );
     }
 
-    /**
-     * 제공된 식별자 목록에 해당하는 모든 쿠폰 엔티티를 조회합니다.
-     * @param ids 쿠폰 식별자 리스트
-     * @return 조회된 쿠폰 엔티티 목록 (데이터가 없거나 ids가 비어있을 경우 빈 리스트 반환)
-     */
     @Override
     public List<Coupon> findAllByIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -66,4 +53,16 @@ public class CouponRepositoryImpl implements CouponRepository {
     public void deleteAllInBatch() {
         jpaRepository.deleteAllInBatch();
     }
+
+    // --- 내부 필터 조건 메서드 ---
+
+    /**
+     * 사용 가능한 상태인지 확인하는 표현식을 생성한다.
+     *
+     * @return 쿠폰 사용 가능 상태 조건 표현식
+     */
+    private BooleanExpression isAvailable() {
+        return coupon.useStatus.eq(CouponUseStatus.AVAILABLE);
+    }
+
 }

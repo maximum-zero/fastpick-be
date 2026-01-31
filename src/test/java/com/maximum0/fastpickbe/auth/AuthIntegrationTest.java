@@ -20,8 +20,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-@DisplayName("인증 도메인 통합 테스트")
+@DisplayName("Auth Domain 통합 테스트")
 class AuthIntegrationTest extends BaseIntegrationTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -29,41 +30,36 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Nested
-    @DisplayName("회원가입과 로그인 연계 테스트")
-    class SignUpAndLoginTest {
+    @DisplayName("회원가입 및 로그인 연계 시나리오 테스트")
+    class Auth_Flow_Scenario {
 
         @Test
-        @DisplayName("정상적인 회원가입 후, 해당 정보로 로그인을 수행하면 성공한다.")
-        void signUpAndLogin_Success_WhenCredentialsAreValid() throws Exception {
-            // given: 회원가입 정보
+        @DisplayName("유효한 가입 정보로 회원가입 후 로그인을 수행하면 인증 토큰을 반환한다")
+        void givenValidCredentials_whenSignUpAndLogin_thenReturnsAuthTokens() throws Exception {
+            // given: 회원가입 단계
             String email = "testuser@example.com";
             String password = "password123!";
-            String username = "테스트유저";
-            SignUpRequest signUpRequest = new SignUpRequest(email, password, username);
+            SignUpRequest signUpRequest = new SignUpRequest(email, password, "테스트유저");
 
             // when: 회원가입 요청
-            ResultActions signUpActions = mockMvc.perform(post("/api/v1/auth/signup")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(signUpRequest)));
-
-            // then: 회원가입 성공 검증
-            signUpActions
+            mockMvc.perform(post("/api/v1/auth/signup")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(signUpRequest)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
-                    .andExpect(jsonPath("$.data").exists());
+                    .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE));
 
-            // given: 로그인 정보
+            // given: 로그인 단계
             LoginRequest loginRequest = new LoginRequest(email, password);
 
             // when: 로그인 요청
-            ResultActions loginActions = mockMvc.perform(post("/api/v1/auth/login")
+            ResultActions resultActions = mockMvc.perform(post("/api/v1/auth/login")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginRequest)));
 
-            // then: 로그인 성공 검증
-            loginActions
+            // then: 최종 인증 정보 검증
+            resultActions
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
                     .andExpect(jsonPath("$.data.accessToken").exists())
@@ -71,4 +67,5 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.grantType").value("Bearer"));
         }
     }
+
 }

@@ -18,10 +18,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@Getter
 @Entity
-@Table(name = "tb_user")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "tb_user")
 public class User extends BaseEntity {
 
     @Id
@@ -41,6 +41,8 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private UserRole role;
 
+    // --- 생성자 ---
+
     @Builder(access = AccessLevel.PRIVATE)
     private User(Long id, String email, String password, String name, UserRole role) {
         this.id = id;
@@ -50,6 +52,11 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
+    // --- 정적 팩토리 메서드 ---
+
+    /**
+     * 유저 객체를 생성한다. (비즈니스 로직)
+     */
     public static User create(String email, String rawPassword, String name) {
         return User.builder()
                 .email(email)
@@ -59,19 +66,23 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    public static User forTest(Long id, String email, String rawPassword, String name) {
+    /**
+     * 유저 객체를 생성한다. (테스트 코드)
+     */
+    public static User forTest(Long id, String email, String rawPassword, String name, UserRole userRole) {
         return User.builder()
                 .id(id)
                 .email(email)
                 .password(rawPassword)
                 .name(name)
-                .role(UserRole.USER)
+                .role(userRole)
                 .build();
     }
 
+    // --- 비즈니스 행위 로직 ---
+
     /**
-     * 입력받은 비밀번호가 유효한지 검증한다.
-     *
+     * 입력받은 비밀번호의 유효성을 검증한다.
      * @param passwordEncoder 암호화 인코더
      * @param rawPassword 검증할 평문 비밀번호
      * @throws BusinessException 비밀번호가 일치하지 않을 경우

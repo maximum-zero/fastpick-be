@@ -17,7 +17,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
 @ActiveProfiles("local")
-@Disabled("운영/개발 환경에 대량 데이터를 직접 주입할 때만 수동으로 실행합니다.")
+@Disabled("운영/개발 환경에 대량 데이터를 직접 주입할 때만 수동으로 실행한다.")
 @DisplayName("Coupon Data Seeding 도구")
 class CouponDataSeeder {
 
@@ -34,12 +34,12 @@ class CouponDataSeeder {
     private static final int BATCH_SIZE = 1000;
 
     @Nested
-    @DisplayName("Coupon Provisioning Test")
-    class CouponProvisioningTest {
+    @DisplayName("쿠폰 데이터 프로비저닝 시나리오")
+    class Coupon_Provisioning_Scenario {
 
         @Test
-        @DisplayName("쿠폰과 쿠폰 키워드를 DB에 저장합니다.")
-        void couponData_bulkInsert_success() {
+        @DisplayName("100만 건의 쿠폰 및 키워드 데이터를 벌크 삽입하여 DB 기강을 잡는다")
+        void givenSeedingConstants_whenBulkInsert_thenSucceeds() {
             // given
             String[] brands = {"HOKA", "NIKE", "A.P.C.", "KITSUNE", "SOTO", "NEW BALANCE", "PATAGONIA"};
             String[] modifiers = {"[단독]", "[OFF]", "[NEW]", "[LAST]", "[29CM]"};
@@ -56,43 +56,54 @@ class CouponDataSeeder {
                         LocalDateTime createdAt = now.minusSeconds(offset);
 
                         String brand = brands[random.nextInt(brands.length)];
-                        String title = String.format("%s %s %s", modifiers[random.nextInt(modifiers.length)], brand, items[random.nextInt(items.length)]);
+                        String title = String.format("%s %s %s",
+                                modifiers[random.nextInt(modifiers.length)],
+                                brand,
+                                items[random.nextInt(items.length)]
+                        );
 
-                        // 쿠폰 추가
+                        // 쿠폰 데이터 삽입
                         Long couponId = jdbcTemplate.queryForObject(
-                                "INSERT INTO tb_coupon (brand, title, summary, description, total_quantity, issued_quantity, limit_per_user, is_sold_out, start_at, end_at, use_status, created_at, updated_at) " +
-                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+                                "INSERT INTO tb_coupon (brand, title, summary, description, total_quantity, issued_quantity, limit_per_user, start_at, end_at, use_status, created_at, updated_at) " +
+                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
                                 Long.class,
                                 brand, title, "29CM 혜택", "상세 설명", 1000, 0, 1, false,
                                 createdAt.minusDays(1), createdAt.plusDays(30), "AVAILABLE", createdAt, createdAt
                         );
 
-                        // 쿠폰 키워드 추출
+                        // 키워드 추출 및 매핑
                         List<String> keywords = couponKeywordManager.extract(brand, title);
                         List<Object[]> keywordArgs = keywords.stream()
                                 .map(kw -> new Object[]{
-                                        couponId,
-                                        kw,
-                                        false,
-                                        createdAt.minusDays(1),
-                                        createdAt.plusDays(30),
-                                        "AVAILABLE",
-                                        createdAt
+                                        couponId, kw, false,
+                                        createdAt.minusDays(1), createdAt.plusDays(30),
+                                        "AVAILABLE", createdAt
                                 })
                                 .collect(Collectors.toList());
 
-                        // 4. 키워드 벌크 삽입
+                        // 키워드 벌크 삽입
                         jdbcTemplate.batchUpdate(
-                                "INSERT INTO tb_coupon_keyword (coupon_id, keyword, is_sold_out, start_at, end_at, use_status, created_at) " +
-                                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                "INSERT INTO tb_coupon_keyword (coupon_id, keyword, created_at) " +
+                                        "VALUES (?, ?, ?)",
                                 keywordArgs
                         );
                     }
                     return null;
                 });
-                System.out.printf("[Provisioning] %d / %d 건 (%.1f%%) 완료... 🥊%n",
-                        (batchStep + 1) * BATCH_SIZE, TOTAL_COUNT, ((double)(batchStep + 1) * BATCH_SIZE / TOTAL_COUNT) * 100);
+
+                // then
+                printProgress(batchStep + 1);
             }
         }
     }
+
+    // --- 헬퍼 메서드 ---
+
+    private void printProgress(int currentBatch) {
+        int processedCount = currentBatch * BATCH_SIZE;
+        double percentage = ((double) processedCount / TOTAL_COUNT) * 100;
+        System.out.printf("[Provisioning] %d / %d 건 (%.1f%%) 삽입 완료... %n",
+                processedCount, TOTAL_COUNT, percentage);
+    }
+
 }

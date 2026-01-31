@@ -1,7 +1,7 @@
 package com.maximum0.fastpickbe.coupon.domain.model;
 
 import com.maximum0.fastpickbe.common.domain.BaseCreateEntity;
-import com.maximum0.fastpickbe.coupon.domain.vo.MyCouponStatus;
+import com.maximum0.fastpickbe.coupon.domain.vo.IssuedCouponStatus;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,10 +18,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Entity
-@Table(name = "tb_issued_coupon")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "tb_issued_coupon")
 public class IssuedCoupon extends BaseCreateEntity {
 
     @Id
@@ -39,17 +39,20 @@ public class IssuedCoupon extends BaseCreateEntity {
     @Column(nullable = true)
     private LocalDateTime usedAt;
 
+    // --- 생성자 ---
+
     @Builder(access = AccessLevel.PRIVATE)
-    private IssuedCoupon(User user, Coupon coupon) {
+    private IssuedCoupon(Long id, User user, Coupon coupon, LocalDateTime usedAt) {
+        this.id = id;
         this.user = user;
         this.coupon = coupon;
+        this.usedAt = usedAt;
     }
 
+    // --- 정적 팩토리 메서드 ---
+
     /**
-     * 특정 유저에게 쿠폰을 발급 처리합니다.
-     * @param user 발급 대상 유저
-     * @param coupon 발급될 쿠폰
-     * @return IssuedCoupon 발급된 쿠폰 객체
+     * 특정 유저에게 쿠폰을 발급 처리한다. (비즈니스 로직)
      */
     public static IssuedCoupon create(User user, Coupon coupon) {
         return IssuedCoupon.builder()
@@ -59,34 +62,52 @@ public class IssuedCoupon extends BaseCreateEntity {
     }
 
     /**
-     * 발급된 쿠폰을 사용 처리합니다.
+     * 특정 유저에게 쿠폰을 발급 처리한다. (테스트 코드)
+     */
+    public static IssuedCoupon forTest(Long id, User user, Coupon coupon, LocalDateTime usedAt) {
+        return IssuedCoupon.builder()
+                .id(id)
+                .user(user)
+                .coupon(coupon)
+                .usedAt(usedAt)
+                .build();
+    }
+
+    // --- 비즈니스 행위 로직 ---
+
+    /**
+     * 발급된 쿠폰을 사용 처리한다.
      * @param now 사용 시점
      */
     public void use(LocalDateTime now) {
         this.usedAt = now;
     }
 
+
+    // --- 상태 판별 및 계산 로직 ---
+
     /**
-     * 쿠폰 사용 완료 여부를 확인합니다.
-     * @return 사용 완료 시 true
+     * 현재 발급된 쿠폰의 상태를 계산한다.
+     * @param now 기준 시각
+     * @return 쿠폰 상태 (AVAILABLE, USED, EXPIRED)
      */
-    public boolean isUsed() {
-        return usedAt != null;
+    public IssuedCouponStatus calculateStatus(LocalDateTime now) {
+        if (isUsed()) {
+            return IssuedCouponStatus.USED;
+        }
+
+        if (coupon.isExpired(now)) {
+            return IssuedCouponStatus.EXPIRED;
+        }
+
+        return IssuedCouponStatus.AVAILABLE;
     }
 
     /**
-     * 현재 발급된 쿠폰의 상태를 동적으로 계산합니다.
-     * @param now 기준 시간
-     * @return 쿠폰 상태 (AVAILABLE, USED, EXPIRED)
+     * 쿠폰 사용 완료 여부를 확인한다.
      */
-    public MyCouponStatus calculateStatus(LocalDateTime now) {
-        if (isUsed()) {
-            return MyCouponStatus.USED;
-        }
-        if (coupon.isExpired(now)) {
-            return MyCouponStatus.EXPIRED;
-        }
-        return MyCouponStatus.AVAILABLE;
+    public boolean isUsed() {
+        return usedAt != null;
     }
 
 }

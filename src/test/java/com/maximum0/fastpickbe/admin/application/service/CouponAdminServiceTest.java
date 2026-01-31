@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("CouponAdmin Service 단위 테스트")
+@DisplayName("Coupon Admin Service 단위 테스트")
 class CouponAdminServiceTest {
 
     @InjectMocks
@@ -42,29 +42,18 @@ class CouponAdminServiceTest {
     private final LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Nested
-    @DisplayName("쿠폰 생성 테스트")
-    class CreateCouponTest {
+    @DisplayName("쿠폰 생성 시나리오 테스트")
+    class Create_Coupon_Scenario {
 
         @Test
-        @DisplayName("쿠폰 정보가 주어지면 저장하고 키워드 인덱스를 생성한다")
-        void createCoupon_SavesCouponAndKeywords_WhenCalledWithValidCoupon() {
+        @DisplayName("올바른 쿠폰 정보가 주어지면 쿠폰을 저장하고 키워드 인덱스를 정상적으로 생성한다")
+        void givenValidCoupon_whenCreateCoupon_thenReturnsCouponId() {
             // given
-            LocalDateTime now = LocalDateTime.now();
-            Coupon coupon = Coupon.forTest(
-                    1L,
-                    "나이키",
-                    "[특가] 에어포스",
-                    "요약 설명",
-                    "상세설명",
-                    100,
-                    0,
-                    now,
-                    now.plusDays(7),
-                    CouponUseStatus.AVAILABLE
-            );
+            Coupon coupon = createTestCoupon();
+            List<String> keywords = List.of("나이키", "특가", "에어포스");
 
             given(couponRepository.save(any(Coupon.class))).willReturn(coupon);
-            given(couponKeywordManager.extract(any(), any())).willReturn(List.of("나이키", "특가", "에어포스"));
+            given(couponKeywordManager.extract(coupon.getBrand(), coupon.getTitle())).willReturn(keywords);
 
             // when
             Long resultId = couponAdminService.createCoupon(coupon);
@@ -72,9 +61,19 @@ class CouponAdminServiceTest {
             // then
             assertThat(resultId).isEqualTo(1L);
 
-            verify(couponRepository, times(1)).save(coupon);
-            verify(couponKeywordManager).extract("나이키", "[특가] 에어포스");
-            verify(couponKeywordRepository).saveAll(anyList());
+            verify(couponRepository, times(1)).save(any(Coupon.class));
+            verify(couponKeywordManager, times(1)).extract(coupon.getBrand(), coupon.getTitle());
+            verify(couponKeywordRepository, times(1)).saveAll(anyList());
         }
     }
+
+    // --- 테스트 메서드 ---
+
+    private Coupon createTestCoupon() {
+        return Coupon.forTest(
+                1L, "나이키", "[특가] 에어포스", "요약", "상세",
+                100, 0, now, now.plusDays(7), CouponUseStatus.AVAILABLE
+        );
+    }
+
 }
