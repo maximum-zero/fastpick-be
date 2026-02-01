@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
             Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("✅ [SecurityContext] {} {} - 인증 정보 저장 완료 | User: {}",
+            log.info("✅ [JwtAuthenticationFilter] 인증 성공 - {} {} | principal={}",
                     request.getMethod(), request.getRequestURI(), authentication.getName());
         }
 

@@ -79,7 +79,7 @@ class JwtTokenProviderTest {
             // when & then
             assertThatThrownBy(() -> jwtTokenProvider.getAuthentication(tokenWithoutAuth))
                     .isInstanceOf(BusinessException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INTERNAL_SERVER_ERROR);
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TOKEN);
         }
     }
 

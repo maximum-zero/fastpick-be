@@ -28,8 +28,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException {
-        log.warn("⚠️ [AccessDeniedException] {} {} - {} | Params: {}",
-                request.getMethod(), request.getRequestURI(), ErrorCode.FORBIDDEN.getMessage(), RequestUtils.getRequestParams(request));
+        log.warn("⚠️ [AccessDeniedException] 접근 거부 - {} {} | Params: {}",
+                request.getMethod(), request.getRequestURI(), RequestUtils.getRequestParams(request));
 
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.FORBIDDEN);
 
