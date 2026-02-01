@@ -11,6 +11,7 @@ cors:
   allowed-origins:
     - "http://192.168.56.111"
 
-logging:
-  level:
-    org.hibernate.SQL: error
+
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL:none}
