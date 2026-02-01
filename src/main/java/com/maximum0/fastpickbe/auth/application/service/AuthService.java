@@ -10,6 +10,7 @@ import com.maximum0.fastpickbe.user.domain.model.User;
 import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 사용자 인증 관련 비즈니스 로직을 담당하는 서비스.
+ *
+ * - 신규 유저 회원가입
+ * - 유저 로그인
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,13 +38,12 @@ public class AuthService {
      * 신규 유저 회원가입을 처리하고 즉시 인증 권한을 부여한다.
      * 이메일 중복 여부를 확인한 후, 유저 정보를 암호화하여 저장한다.
      *
-     * @param request 가입 요청 정보
-     * @return 생성된 유저 정보와 발급된 인증 토큰(Access/Refresh) 응답 객체
      * @throws BusinessException 이메일이 이미 존재할 경우 (DUPLICATE_EMAIL)
      */
     @Transactional
     public AuthResponse signUp(SignUpRequest request) {
         if (userRepository.existsByEmail(request.email())) {
+            log.info("✅ [AuthService] 회원가입 실패 - 중복 이메일 | email: {}", request.email());
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
@@ -44,6 +51,7 @@ public class AuthService {
         User user = User.create(request.email(), encodedPassword, request.name());
         User savedUser = userRepository.save(user);
 
+        log.info("✅ [AuthService] 신규 회원가입 완료 | userId: {}, email: {}", savedUser.getId(), savedUser.getEmail());
         return createAuthResponse(savedUser);
     }
 
@@ -51,13 +59,14 @@ public class AuthService {
      * 유저 로그인을 처리하여 인증 권한을 부여한다.
      * 이메일 존재 여부 및 비밀번호 일치 여부를 검증한다.
      *
-     * @param request 로그인 요청 정보 (이메일, 비밀번호)
-     * @return 인증된 유저 정보와 발급된 인증 토큰(Access/Refresh) 응답 객체
      * @throws BusinessException 아이디가 없거나 비밀번호가 틀린 경우 (LOGIN_FAILED)
      */
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
+                .orElseThrow(() -> {
+                    log.info("✅ [AuthService] 로그인 실패 - 존재하지 않는 이메일 | email: {}", request.email());
+                    return new BusinessException(ErrorCode.LOGIN_FAILED);
+                });
 
         user.authenticate(passwordEncoder, request.password());
 
@@ -65,10 +74,7 @@ public class AuthService {
     }
 
     /**
-     * 특정 사용자에 대한 인증 객체를 생성하고 JWT 토큰 응답을 빌드한다.
-     *
-     * @param user 인증 대상 유저 엔티티
-     * @return 토큰 정보를 포함한 AuthResponse 객체
+     * 인증 객체를 기반으로 Access / Refresh Token을 생성하여 응답 객체를 구성한다.
      */
     private AuthResponse createAuthResponse(User user) {
         Authentication authentication = createAuthentication(user);
@@ -85,10 +91,8 @@ public class AuthService {
     }
 
     /**
-     * 특정 사용자에 대한 인증 객체를 생성하고 JWT 토큰 응답을 빌드한다.
-     *
-     * @param user 인증 대상 유저 엔티티
-     * @return 토큰 정보(Access/Refresh)를 포함한 AuthResponse 객체
+     * 인증 객체(Authentication)를 생성한다.
+     * JWT 토큰 발급에 사용된다.
      */
     private Authentication createAuthentication(User user) {
         return new UsernamePasswordAuthenticationToken(

@@ -13,6 +13,11 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
+/**
+ * 쿠폰 발급 관련 비즈니스 로직을 담당하는 서비스.
+ *
+ * - 쿠폰 발급
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,12 +30,12 @@ public class CouponIssueService {
     private static final String LOCK_PREFIX = "lock:coupon:";
 
     /**
-     * 분산 락을 획득하여 안전하게 쿠폰 발급을 처리한다.
-     * 락 획득을 위해 최대 10초간 대기하며, 획득 성공 시 파사드 레이어에 발급 로직을 위임한다.
+     * 분산 락을 획득하여 동시 발급 상황에서도 쿠폰 발급을 안전하게 처리한다.
      *
-     * @param couponId 발급할 쿠폰 식별자
-     * @param user     발급 대상 사용자 엔티티
-     * @return 생성된 쿠폰 발급 이력 식별자(ID)
+     * - 쿠폰 단위로 락을 획득한다.
+     * - 락 획득 실패 시 즉시 예외를 반환한다.
+     * - 실제 발급 로직은 파사드 레이어에 위임한다.
+     *
      * @throws BusinessException 락 획득 실패(CONCURRENCY_BUSY) 또는 시스템 인터럽트 오류 시
      */
     public Long issue(Long couponId, User user) {
@@ -41,13 +46,16 @@ public class CouponIssueService {
         try {
             boolean available = lock.tryLock(10, -1, TimeUnit.SECONDS);
             if (!available) {
+                log.warn("⚠️ [CouponIssueService] 락 획득 실패 - 트래픽 과부하 | couponId={}, userId={}", couponId, user.getId());
                 throw new BusinessException(ErrorCode.CONCURRENCY_BUSY);
             }
 
-            log.info("[CouponIssueService] 쿠폰 발급 성공 - 쿠폰ID: {}, 유저ID: {}", couponId, user.getId());
-            return couponIssueFacade.executeIssue(couponId, user, now);
+            Long issuedId = couponIssueFacade.executeIssue(couponId, user, now);
+            log.info("✅ [CouponIssueService] 발급 완료 | couponId={}, userId={}, issuedId={}", couponId, user.getId(), issuedId);
+            return issuedId;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.error("⛔️ [CouponIssueService] 락 획득 중단 - 시스템 인터럽트 발생 | couponId={}, userId={}", couponId, user.getId());
             throw new BusinessException(ErrorCode.SYSTEM_LOCKING_ERROR);
         } finally {
             if (lock.isHeldByCurrentThread()) {

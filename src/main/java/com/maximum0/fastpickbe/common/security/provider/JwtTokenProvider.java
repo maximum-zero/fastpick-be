@@ -79,7 +79,7 @@ public class JwtTokenProvider {
 
         if (claims.get(AUTHORITIES_KEY) == null) {
             log.error("⛔️ [JwtTokenProvider] JWT 토큰에 권한 정보가 누락되었습니다. - Subject: {}", claims.getSubject());
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
         Collection<? extends GrantedAuthority> authorities =

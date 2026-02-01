@@ -23,10 +23,6 @@ public class CouponIssueFacade {
      * 쿠폰 발급 프로세스를 원자적으로 수행한다.
      * 쿠폰 존재 여부 확인, 중복 발급 체크, 재고 차감, 발급 이력 저장을 순차적으로 진행한다.
      *
-     * @param couponId 발급할 쿠폰 식별자
-     * @param user     발급 대상 사용자 엔티티
-     * @param now      발급 기준 시각
-     * @return 생성된 쿠폰 발급 이력(IssuedCoupon)의 식별자
      * @throws BusinessException 쿠폰이 없거나(COUPON_NOT_FOUND), 이미 발급받은 경우(ALREADY_ISSUED_COUPON)
      */
     @Transactional

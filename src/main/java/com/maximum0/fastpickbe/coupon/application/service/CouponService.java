@@ -12,12 +12,21 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 쿠폰 관련 비즈니스 로직을 담당하는 서비스.
+ *
+ * - 검색 조건 기반 쿠폰 목록 조회
+ * - 쿠폰 단건 조회
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,37 +37,34 @@ public class CouponService {
     private final Clock clock;
 
     /**
-     * 검색 조건에 따른 쿠폰 목록을 페이징하여 조회한다.
-     *
-     * @param request  검색 필터 키워드 및 상태 조건
-     * @param pageable 페이징 설정 (page, size, sort)
-     * @return PageResponse<CouponSummaryResponse> 페이징된 쿠폰 요약 정보 응답 객체
+     * 검색 조건 및 현재 시점을 기준으로 활성 상태의 쿠폰 목록을 페이징 조회한다.
      */
     @Cacheable(cacheNames = "coupons", key = "#request.toString() + #pageable.pageNumber")
     public PageResponse<CouponSummaryResponse> getCoupons(CouponListRequest request, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now(clock);
 
-        long total = couponKeywordRepository.countByCondition(request, now);
-        if (total == 0) {
-            return PageResponse.from(new PageImpl<>(List.of(), pageable, 0));
+        long totalCount = couponKeywordRepository.countByCondition(request, now);
+        if (totalCount == 0) {
+            return PageResponse.from(Page.empty(pageable));
         }
 
         List<CouponSummaryResponse> responses = couponKeywordRepository.findAllByCondition(request, pageable, now);
-        return PageResponse.from(new PageImpl<>(responses, pageable, total));
+        return PageResponse.from(new PageImpl<>(responses, pageable, totalCount));
     }
 
     /**
-     * 특정 쿠폰의 상세 정보를 조회한다.
+     * 현재 시점을 기준으로 활성 상태인 특정 쿠폰의 상세 정보를 조회한다.
      *
-     * @param id 조회할 쿠폰 식별자
-     * @return CouponResponse 쿠폰 상세 정보 응답 DTO
-     * @throws BusinessException 쿠폰이 존재하지 않거나 비활성화된 경우 (COUPON_NOT_FOUND)
+     * @throws BusinessException 쿠폰이 존재하지 않거나 비활성화된 경우
      */
     public CouponResponse getCoupon(Long id) {
         LocalDateTime now = LocalDateTime.now(clock);
         return couponRepository.findActiveById(id)
                 .map(c -> CouponResponse.from(c, now))
-                .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.info("ℹ️ [CouponService] 쿠폰 조회 실패 - 존재하지 않음 | couponId={}", id);
+                    return new BusinessException(ErrorCode.COUPON_NOT_FOUND);
+                });
     }
 
 }

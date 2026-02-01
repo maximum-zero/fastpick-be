@@ -28,8 +28,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException {
-        log.info("✅ [AuthenticationException] {} {} - {} | Params: {}",
-                request.getMethod(), request.getRequestURI(), ErrorCode.UNAUTHORIZED.getMessage(), RequestUtils.getRequestParams(request));
+        log.warn("⚠️ [AuthenticationEntryPoint] 인증 실패 - {} {} | reason={} | params={}",
+                request.getMethod(), request.getRequestURI(), authException.getMessage(), RequestUtils.getRequestParams(request));
 
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.UNAUTHORIZED);
 
