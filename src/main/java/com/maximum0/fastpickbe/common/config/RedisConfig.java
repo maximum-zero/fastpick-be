@@ -69,10 +69,12 @@ public class RedisConfig implements CachingConfigurer {
     @Profile("local")
     public CommandLineRunner flushRedis(RedisConnectionFactory factory) {
         return args -> {
-            factory.getConnection().serverCommands().flushAll();
-            System.out.println("──────────────────────────────────────────────");
-            System.out.println("[Local] Redis Cache Flushed Successfully!");
-            System.out.println("──────────────────────────────────────────────");
+            try {
+                factory.getConnection().serverCommands().flushAll();
+                log.info("✅ [RedisConfig] Local 환경 Redis 캐시 초기화 완료");
+            } catch (Exception e) {
+                log.error("⛔️ [RedisConfig] Local 환경 Redis 캐시 초기화 실패 - Message: {}", e.getMessage());
+            }
         };
     }
 
@@ -82,25 +84,25 @@ public class RedisConfig implements CachingConfigurer {
         return new CacheErrorHandler() {
             @Override
             public void handleCacheGetError(@NonNull RuntimeException exception, @NonNull Cache cache, @NonNull Object key) {
-                log.error("❌ [Redis CacheGetError]: Cache: {} | Key: {} | Message: {}",
+                log.error("⛔️ [RedisCacheError] Get 실패 - Cache: {} | Key: {} | Message: {}",
                         cache.getName(), key, exception.getMessage());
             }
 
             @Override
             public void handleCachePutError(@NonNull RuntimeException exception, @NonNull Cache cache, @NonNull Object key, @NonNull Object value) {
-                log.error("❌ [Redis CachePutError]: Cache: {} | Key: {} | Message: {}",
+                log.error("⛔️ [RedisCacheError] Put 실패 - Cache: {} | Key: {} | Message: {}",
                         cache.getName(), key, exception.getMessage());
             }
 
             @Override
             public void handleCacheEvictError(@NonNull RuntimeException exception, @NonNull Cache cache, @NonNull Object key) {
-                log.error("❌ [Redis CacheEvictError]: Cache: {} | Key: {} | Message: {}",
+                log.error("⛔️ [RedisCacheError] Evict 실패 - Cache: {} | Key: {} | Message: {}",
                         cache.getName(), key, exception.getMessage());
             }
 
             @Override
             public void handleCacheClearError(@NonNull RuntimeException exception, @NonNull Cache cache) {
-                log.error("❌ [Redis CacheClearError]: Cache: {} | Message: {}",
+                log.error("⛔️ [RedisCacheError] Clear 실패 - Cache: {} | Message: {}",
                         cache.getName(), exception.getMessage());
             }
         };

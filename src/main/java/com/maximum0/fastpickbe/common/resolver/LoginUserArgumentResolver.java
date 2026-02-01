@@ -1,13 +1,14 @@
 package com.maximum0.fastpickbe.common.resolver;
 
 import com.maximum0.fastpickbe.common.annotation.LoginUser;
+import com.maximum0.fastpickbe.common.exception.BusinessException;
+import com.maximum0.fastpickbe.common.exception.ErrorCode;
 import com.maximum0.fastpickbe.user.domain.model.User;
 import com.maximum0.fastpickbe.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -32,13 +33,12 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
             WebDataBinderFactory binderFactory) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UsernameNotFoundException("인증된 사용자 정보를 찾을 수 없습니다.");
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
         String userEmail = authentication.getName();
         return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. email: " + userEmail));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 }
