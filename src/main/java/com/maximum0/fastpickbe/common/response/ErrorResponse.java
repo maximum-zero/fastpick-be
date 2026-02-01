@@ -15,6 +15,10 @@ public record ErrorResponse(
         return new ErrorResponse(errorCode.getStatus(), errorCode.getCode(), errorCode.getMessage(), List.of());
     }
 
+    public static ErrorResponse of(ErrorCode errorCode, String detail) {
+        return new ErrorResponse(errorCode.getStatus(), errorCode.getCode(), detail, List.of());
+    }
+
     public static ErrorResponse of(ErrorCode errorCode, BindingResult bindingResult) {
         return new ErrorResponse(errorCode.getStatus(), errorCode.getCode(), errorCode.getMessage(), FieldError.from(bindingResult));
     }

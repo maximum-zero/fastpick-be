@@ -26,6 +26,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
 /**
  * JWT(JSON Web Token)의 생성, 추출, 유효성 검증을 담당하는 핵심 컴포넌트입니다.
  * Spring Security와 연동하여 인증 객체(Authentication)를 생성하고 관리합니다.
@@ -77,7 +78,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
 
         if (claims.get(AUTHORITIES_KEY) == null) {
-            log.error("JWT 토큰에 권한 정보가 누락되었습니다.");
+            log.error("⛔️ [JwtTokenProvider] JWT 토큰에 권한 정보가 누락되었습니다. - Subject: {}", claims.getSubject());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
@@ -101,13 +102,13 @@ public class JwtTokenProvider {
             parseClaims(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.warn("잘못된 JWT 서명입니다: {}", e.getMessage());
+            log.warn("⚠️ [JwtTokenProvider] 잘못된 JWT 서명입니다 - Message: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다: {}", e.getMessage());
+            log.info("✅ [JwtTokenProvider] 만료된 JWT 토큰입니다 - Message: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.warn("지원되지 않는 JWT 토큰입니다: {}", e.getMessage());
+            log.warn("⚠️ [JwtTokenProvider] 지원되지 않는 JWT 토큰입니다 - Message: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.error("JWT 클레임 문자열이 비어 있습니다: {}", e.getMessage());
+            log.error("⛔️ [JwtTokenProvider] JWT 클레임 문자열이 비어 있습니다 - Message: {}", e.getMessage());
         }
         return false;
     }
