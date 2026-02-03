@@ -21,12 +21,16 @@ import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Auth Controller 슬라이스 테스트")
 class AuthControllerTest extends BaseRestDocsTest {
 
-    private final AuthService authService = Mockito.mock(AuthService.class);
+    @Mock
+    private AuthService authService;
 
     @Override
     protected Object initController() {

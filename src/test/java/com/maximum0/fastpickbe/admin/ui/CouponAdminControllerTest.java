@@ -21,12 +21,16 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Coupon Admin Controller 슬라이스 테스트")
 class CouponAdminControllerTest extends BaseRestDocsTest {
 
-    private final CouponAdminService couponAdminService = Mockito.mock(CouponAdminService.class);
+    @Mock
+    private CouponAdminService couponAdminService;
 
     @Override
     protected Object initController() {
