@@ -15,8 +15,8 @@
       <appender-ref ref="CONSOLE"/>
     </root>
     <logger name="com.maximum0.fastpickbe" level="DEBUG"/>
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <logger name="org.hibernate.SQL" level="INFO"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO"/>
   </springProfile>
 
   <springProfile name="prod">
@@ -24,5 +24,6 @@
       <appender-ref ref="CONSOLE"/>
     </root>
     <logger name="com.maximum0.fastpickbe" level="INFO"/>
-    <logger name="org.hibernate.SQL" level="ERROR"/> </springProfile>
+    <logger name="org.hibernate.SQL" level="ERROR"/>
+  </springProfile>
 </configuration>
