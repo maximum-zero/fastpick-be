@@ -1,8 +1,8 @@
 package com.maximum0.fastpickbe.coupon.ui;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -25,13 +25,17 @@ import com.maximum0.fastpickbe.user.domain.vo.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Coupon Issue Controller 슬라이스 테스트")
 class CouponIssueControllerTest extends BaseRestDocsTest {
 
-    private final CouponIssueService couponIssueService = Mockito.mock(CouponIssueService.class);
+    @Mock
+    private CouponIssueService couponIssueService;
 
     @Override
     protected Object initController() {
@@ -46,14 +50,13 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
         private final PrincipalDetails principalDetails = new PrincipalDetails(testUser);
 
         @Test
-        @DisplayName("정상적인 쿠폰 발급 요청 정보가 주어지면 발급을 수행하고 200 OK를 반환한다")
+        @DisplayName("정상적인 쿠폰 발급 요청 정보가 주어지면 발급을 수행하고 202 Accepted 를 반환한다")
         void givenValidRequest_whenIssueCoupon_thenReturnsIssuedId() throws Exception {
             // given
             long couponId = 1L;
-            long issuedCouponId = 100L;
             CouponIssueRequest request = new CouponIssueRequest(couponId);
 
-            given(couponIssueService.issue(anyLong(), any(User.class))).willReturn(issuedCouponId);
+            doNothing().when(couponIssueService).issue(any(), any());
 
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
@@ -61,9 +64,8 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
                             .header("Authorization", "Bearer dummy-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$.code").value(ApiResponse.SUCCESS_CODE))
-                    .andExpect(jsonPath("$.data").value(issuedCouponId))
                     .andDo(restDocument("coupon-issue/success",
                             requestHeaders(
                                     headerWithName("Authorization").description("Bearer <ACCESS_TOKEN>")
@@ -72,7 +74,7 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
                                     fieldWithPath("couponId").description("발급 요청할 쿠폰 ID")
                             ),
                             responseFields(successFields(
-                                    fieldWithPath("data").description("생성된 발급 이력 ID")
+                                    fieldWithPath("data").description("비동기 처리 접수 완료 (응답 데이터 없음)").optional()
                             ))
                     ));
         }
@@ -84,8 +86,8 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             CouponIssueRequest request = new CouponIssueRequest(1L);
             ErrorCode errorCode = ErrorCode.ALREADY_ISSUED_COUPON;
 
-            given(couponIssueService.issue(anyLong(), any(User.class)))
-                    .willThrow(new BusinessException(errorCode));
+            doThrow(new BusinessException(errorCode))
+                    .when(couponIssueService).issue(any(), any());
 
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
@@ -108,8 +110,8 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             CouponIssueRequest request = new CouponIssueRequest(999L);
             ErrorCode errorCode = ErrorCode.COUPON_NOT_FOUND;
 
-            given(couponIssueService.issue(anyLong(), any(User.class)))
-                    .willThrow(new BusinessException(errorCode));
+            doThrow(new BusinessException(errorCode))
+                    .when(couponIssueService).issue(any(), any());
 
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")
@@ -131,8 +133,8 @@ class CouponIssueControllerTest extends BaseRestDocsTest {
             CouponIssueRequest request = new CouponIssueRequest(1L);
             ErrorCode errorCode = ErrorCode.COUPON_EXHAUSTED;
 
-            given(couponIssueService.issue(anyLong(), any(User.class)))
-                    .willThrow(new BusinessException(errorCode));
+            doThrow(new BusinessException(errorCode))
+                    .when(couponIssueService).issue(any(), any());
 
             // when & then
             mockMvc.perform(post("/api/v1/coupon-issues")

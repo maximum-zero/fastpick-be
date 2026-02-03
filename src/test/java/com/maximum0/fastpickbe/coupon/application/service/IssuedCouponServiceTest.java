@@ -67,7 +67,7 @@ class IssuedCouponServiceTest {
             Pageable pageable = Pageable.unpaged();
 
             Coupon coupon = Coupon.forTest(10L, "브랜드명", "할인쿠폰", "요약 설명", "상세 설명", 100, 10, now.minusDays(1), now.plusDays(1), CouponUseStatus.AVAILABLE);
-            IssuedCoupon issuedCoupon = IssuedCoupon.create(user, coupon);
+            IssuedCoupon issuedCoupon = IssuedCoupon.forTest(1L, user, coupon, now, null);
 
             Page<IssuedCoupon> mockPage = new PageImpl<>(List.of(issuedCoupon));
             given(issuedCouponRepository.findAllByUser(any(), any(), any(), any())).willReturn(mockPage);
