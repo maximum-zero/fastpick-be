@@ -1,8 +1,7 @@
-package com.maximum0.fastpickbe.coupon.application.facade;
+package com.maximum0.fastpickbe.coupon.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.maximum0.fastpickbe.coupon.application.service.CouponKeywordManager;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

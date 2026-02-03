@@ -50,6 +50,11 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
+    public void incrementIssuedQuantity(Long id, int count) {
+        jpaRepository.incrementIssuedQuantity(id, count);
+    }
+
+    @Override
     public void deleteAllInBatch() {
         jpaRepository.deleteAllInBatch();
     }

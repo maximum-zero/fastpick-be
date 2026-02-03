@@ -26,15 +26,19 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Issued Coupon Controller 슬라이스 테스트")
 class IssuedCouponControllerTest extends BaseRestDocsTest {
 
-    private final IssuedCouponService issuedCouponService = Mockito.mock(IssuedCouponService.class);
+    @Mock
+    private IssuedCouponService issuedCouponService;
 
     @Override
     protected Object initController() {

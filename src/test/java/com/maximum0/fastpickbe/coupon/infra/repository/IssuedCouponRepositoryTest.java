@@ -61,7 +61,7 @@ class IssuedCouponRepositoryTest {
             // given
             User targetUser = entityManager.find(User.class, user.getId());
             Coupon targetCoupon = entityManager.find(Coupon.class, coupon.getId());
-            issuedCouponRepository.save(IssuedCoupon.create(targetUser, targetCoupon));
+            issuedCouponRepository.save(IssuedCoupon.create(targetUser, targetCoupon, now));
             entityManager.flush();
 
             // when
@@ -102,15 +102,15 @@ class IssuedCouponRepositoryTest {
             Coupon expiredCoupon = entityManager.persist(Coupon.create("브랜드", "만료된쿠폰", "요약", "상세", 100, now.minusDays(20), now.minusDays(10)));
 
             // 발급 이력 생성 및 영속화
-            IssuedCoupon issued1 = IssuedCoupon.create(user1, couponA);
-            IssuedCoupon issued2 = IssuedCoupon.create(user1, couponB);
+            IssuedCoupon issued1 = IssuedCoupon.create(user1, couponA, now);
+            IssuedCoupon issued2 = IssuedCoupon.create(user1, couponB, now);
             issued2.use(now); // 사용 완료 처리
-            IssuedCoupon issued3 = IssuedCoupon.create(user1, expiredCoupon);
+            IssuedCoupon issued3 = IssuedCoupon.create(user1, expiredCoupon, now);
 
             entityManager.persist(issued1);
             entityManager.persist(issued2);
             entityManager.persist(issued3);
-            entityManager.persist(IssuedCoupon.create(user2, couponA));
+            entityManager.persist(IssuedCoupon.create(user2, couponA, now));
 
             entityManager.flush();
             entityManager.clear();

@@ -31,6 +31,14 @@ public interface CouponRepository {
     List<Coupon> findAllByIds(List<Long> ids);
 
     /**
+     * 특정 쿠폰의 누적 발급 수량을 일괄 업데이트한다.
+     *
+     * @param id    수량을 업데이트할 쿠폰의 식별자
+     * @param count 증가시킬 발급 수량
+     */
+    void incrementIssuedQuantity(Long id, int count);
+
+    /**
      * 모든 쿠폰 데이터를 일괄 삭제한다 (테스트 환경 전용)
      */
     void deleteAllInBatch();

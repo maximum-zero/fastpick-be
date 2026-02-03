@@ -36,16 +36,20 @@ public class IssuedCoupon extends BaseCreateEntity {
     @JoinColumn(name = "coupon_id", nullable = false)
     private Coupon coupon;
 
+    @Column(nullable = false)
+    private LocalDateTime issuedAt;
+
     @Column(nullable = true)
     private LocalDateTime usedAt;
 
     // --- 생성자 ---
 
     @Builder(access = AccessLevel.PRIVATE)
-    private IssuedCoupon(Long id, User user, Coupon coupon, LocalDateTime usedAt) {
+    private IssuedCoupon(Long id, User user, Coupon coupon, LocalDateTime issuedAt, LocalDateTime usedAt) {
         this.id = id;
         this.user = user;
         this.coupon = coupon;
+        this.issuedAt = issuedAt;
         this.usedAt = usedAt;
     }
 
@@ -54,21 +58,23 @@ public class IssuedCoupon extends BaseCreateEntity {
     /**
      * 특정 유저에게 쿠폰을 발급 처리한다. (비즈니스 로직)
      */
-    public static IssuedCoupon create(User user, Coupon coupon) {
+    public static IssuedCoupon create(User user, Coupon coupon, LocalDateTime issuedAt) {
         return IssuedCoupon.builder()
                 .user(user)
                 .coupon(coupon)
+                .issuedAt(issuedAt)
                 .build();
     }
 
     /**
      * 특정 유저에게 쿠폰을 발급 처리한다. (테스트 코드)
      */
-    public static IssuedCoupon forTest(Long id, User user, Coupon coupon, LocalDateTime usedAt) {
+    public static IssuedCoupon forTest(Long id, User user, Coupon coupon, LocalDateTime issuedAt, LocalDateTime usedAt) {
         return IssuedCoupon.builder()
                 .id(id)
                 .user(user)
                 .coupon(coupon)
+                .issuedAt(issuedAt)
                 .usedAt(usedAt)
                 .build();
     }

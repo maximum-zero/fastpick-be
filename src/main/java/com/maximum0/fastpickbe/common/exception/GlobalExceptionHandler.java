@@ -100,7 +100,7 @@ public class GlobalExceptionHandler {
         switch (errorCode.getLevel()) {
             case ERROR -> log.error("⛔️ " + logMessage, e);
             case WARN  -> log.warn("⚠️ " + logMessage);
-            default    -> log.info("✅ " + logMessage);
+            default    -> log.info("ℹ️ " + logMessage);
         }
 
         ErrorPolicy policy = ErrorPolicy.from(errorCode.getLevel());

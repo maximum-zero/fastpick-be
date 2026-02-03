@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -180,6 +181,21 @@ public class Coupon extends BaseEntity {
      */
     public boolean isExhausted() {
         return issuedQuantity >= totalQuantity;
+    }
+
+    /**
+     * 현재 발급 가능한 남은 재고 수량을 계산한다.
+     */
+    public int getStockQuantity() {
+        return this.totalQuantity - this.issuedQuantity;
+    }
+
+    /**
+     * 쿠폰 발급 종료 시점까지 남은 시간을 계산한다.
+     */
+    public Duration getRemainingIssuanceDuration(LocalDateTime now) {
+        Duration duration = Duration.between(now, this.endAt);
+        return duration.isNegative() ? Duration.ZERO : duration;
     }
 
 }

@@ -30,6 +30,15 @@ public interface UserRepository {
      */
     Optional<User> findById(Long id);
 
+
+    /**
+     * 다수의 식별자를 통해 사용자 목록을 한꺼번에 조회한다.
+     *
+     * @param ids 사용자 식별자 리스트
+     * @return 조회된 사용자 엔티티 리스트 (존재하지 않는 ID는 제외됨)
+     */
+    List<User> findAllById(List<Long> ids);
+
     /**
      * 이메일을 통해 사용자 정보를 조회한다
      *

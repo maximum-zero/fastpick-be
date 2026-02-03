@@ -45,7 +45,7 @@ class IssuedCouponTest {
     // --- 테스트 메서드 ---
 
     private IssuedCoupon createIssuedCoupon() {
-        return IssuedCoupon.forTest(1L, null, null, null);
+        return IssuedCoupon.forTest(1L, null, null,  null,null);
     }
 
 }
