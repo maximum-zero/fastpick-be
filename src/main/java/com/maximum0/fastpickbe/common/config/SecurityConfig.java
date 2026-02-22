@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/coupons/{id}").permitAll()
                         // 관리자용 쿠폰 API 접근 허용 (관리자 권한 개발전으로 임시 추가)
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/coupons").permitAll()
+                        .requestMatchers("/docs/index.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 )
