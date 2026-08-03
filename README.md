@@ -1,111 +1,158 @@
-# 🚀 Fastpick Backend
+# 🚀 FastPick Backend
 
-FastPick은 한정 수량 쿠폰을 선착순으로 발급하는 시스템입니다.  
-대규모 요청 환경에서 발생하는 검색 병목과 동시성 문제를 재현하고, 구조를 변경하여 개선한 프로젝트입니다.
+> **100만 건 데이터 조회와 선착순 쿠폰 발급 환경에서 발생하는  
+> 검색 병목과 동시성 문제를 재현하고, 처리 구조를 개선해 결과를 검증한 프로젝트**
 
-본 프로젝트는 단순 기능 구현이 아니라, 부하 테스트를 통해 병목을 수치로 확인하고 설계 변경 후 지표로 검증하는 과정에 집중했습니다.
+FastPick은 한정 수량 쿠폰을 선착순으로 발급하는 시스템입니다.
 
----
-
-## 📊 성능 개선 요약
-- 100만 건 데이터 환경에서 검색 병목 발생 (p99: 60s 초과, Error Rate: 약 75%)
-- 동시 1000명 발급 요청 환경에서 락 경합 및 커넥션 대기 발생
-- 단순 튜닝이 아닌 구조 변경을 통해 개선
+단순 기능 구현보다 부하 테스트와 실행 계획 분석을 통해 병목을 확인하고,  
+데이터 탐색 방식과 발급 처리 흐름을 변경한 뒤 지표로 검증하는 데 집중했습니다.
 
 ---
 
-## 1. 대용량 데이터 조회 성능 개선
+## 📈 핵심 성과
+
+| 구분              |                개선 전 |           개선 후 |
+| ----------------- | ---------------------: | ----------------: |
+| 검색 API p99      |              60초 초과 |         **154ms** |
+| 검색 Error Rate   |                 약 75% |            **0%** |
+| 검색 처리량       |             약 7.5 TPS |      **300+ TPS** |
+| 동시 1,000건 발급 | 락 경합 및 커넥션 대기 | **초과 발급 0건** |
+
+---
+
+## 🔍 대용량 데이터 조회 성능 개선
 
 ### 문제
-- `LIKE '%keyword%'` 조건으로 Full Table Scan 발생
-- 인덱스를 활용할 수 없는 탐색 구조로 인해 I/O 병목 발생
+
+- 100만 건 데이터 환경에서 `LIKE '%keyword%'` 검색 사용
+- 선행 와일드카드로 B-Tree 인덱스를 활용하지 못함
+- Full Table Scan과 I/O 병목 발생
 
 ### 개선
-- Keyword 전용 테이블 분리
-- 전방 일치(`keyword%`) 기반 탐색 구조로 변경
-- Projection 적용 및 Redis 캐시 도입
+
+- 검색용 Keyword 테이블 분리
+- 전방 일치 검색(`keyword%`)으로 탐색 구조 변경
+- Projection으로 조회 범위 축소
+- Redis Cache로 반복 조회 부하 감소
 
 ### 결과
-- p99 60초 → 154ms
-- Error Rate 75% → 0%
-- TPS 300+ (VU 150 기준)
 
-> 📄 상세: [대용량 데이터 조회 성능 개선](docs/04-search.md)
+- p99 **60초 초과 → 154ms**
+- Error Rate **약 75% → 0%**
+- **300+ TPS** 달성
+
+📄 [대용량 데이터 조회 성능 개선 상세](docs/04-search.md)
 
 ---
 
-## 2. 선착순 쿠폰 발급 동시성 제어
+## ⚡ 선착순 쿠폰 발급 동시성 제어
 
-### 초기 설계
-- DB 비관적 락
-- Redis 분산 락
+### 문제
 
-### 구조 변경
-- Redis Atomic Counter 기반 선착순 사전 판단
-- 트랜잭션 범위 축소 및 큐 기반 비동기 처리 구조로 분리
+- DB 비관적 락과 Redis 분산 락 기반 처리
+- 동시 요청 증가 시 락 경합과 커넥션 대기 발생
+- 경쟁 요청이 DB 트랜잭션 내부로 집중
+
+### 개선
+
+- Redis Atomic Counter로 발급 가능 여부를 사전 판단
+- 발급 성공 요청만 Redis Queue에 적재
+- Scheduler가 Queue를 조회하여 DB에 발급 이력을 저장
+- 사용자 요청 처리와 DB 영속화 작업 분리
+
+### 처리 흐름
+
+```text
+Client
+  ↓
+Spring Boot API
+  ↓
+Redis Atomic Counter
+  ├─ 발급 불가 → 즉시 실패 응답
+  └─ 발급 가능
+        ↓
+    Redis Queue 적재
+        ↓
+      성공 응답
+
+Scheduler → Redis Queue 조회 → PostgreSQL 저장
+```
 
 ### 결과
-- 동시 1000 VU 환경 초과 발급 0건
-- 요청 1000건 중 999건 정상 처리 (1건 네트워크 I/O 오류)
 
-> 📄 상세: [선착순 쿠폰 발급 동시성 제어](docs/05-concurrency.md)
+- 동시 **1,000 VU** 환경에서 초과 발급 **0건**
+- 요청 1,000건 중 **999건 정상 처리**
+- 1건은 네트워크 I/O 오류이며 비즈니스 로직 오류는 발생하지 않음
+
+📄 [선착순 쿠폰 발급 동시성 제어 상세](docs/05-concurrency.md)
 
 ---
 
 ## 🏛 아키텍처
 
-### 계층형 구조(DIP 기반)
+도메인별 계층을 다음과 같이 분리했습니다.
 
-- `[domain].ui`
-- `[domain].application`
-- `[domain].domain`
-- `[domain].infra`
+```text
+[domain].ui
+[domain].application
+[domain].domain
+[domain].infra
+```
 
-> 📄 상세: [아키텍처 및 규약](docs/02-architecture.md)
+- UI와 기술 구현체가 도메인 및 애플리케이션 계층을 직접 지배하지 않도록 구성
+- 공통 API 응답 및 예외 처리 규격 적용
+- Testcontainers 기반 통합 테스트
+- 예외 발생 시 Discord Webhook 알림
+
+📄 [아키텍처 및 규약](docs/02-architecture.md)
 
 ---
 
 ## 🛠 기술 스택
 
-### Backend & Database
-- **Framework**: Spring Boot 3.5.9 / Java 17
-- **Database**: PostgreSQL 17
-- **Cache & Concurrency**: Redis
-- **ORM/Query**: Spring Data JPA, Querydsl 5.1.0
-- **Concurrency Control**: Redis Atomic Counter, Redisson 3.24.3
-
-### Test & DevOps
-- **Test**: JUnit 5, Testcontainers (PostgreSQL 17-alpine)
-- **Monitoring**: Prometheus, Grafana, Spring Boot Actuator
-- **Load Test**: K6
+| 영역        | 기술                                        |
+| ----------- | ------------------------------------------- |
+| Backend     | Java 17 · Spring Boot 3.5.9                 |
+| Data        | PostgreSQL 17 · Redis                       |
+| ORM / Query | Spring Data JPA · Querydsl 5.1.0            |
+| Concurrency | Redis Atomic Counter · Redisson 3.24.3      |
+| Test        | JUnit 5 · Testcontainers                    |
+| Monitoring  | Spring Boot Actuator · Prometheus · Grafana |
+| Load Test   | K6                                          |
 
 ---
 
 ## 🚀 로컬 실행
-- `.env.example`을 복사해 `.env`로 생성 후 실행
 
 ```bash
+cp .env.example .env
 docker-compose up -d
 ./gradlew bootRun
 ```
 
-> 📄 상세: [로컬 실행 가이드](docs/01-run-local.md)
+📄 [로컬 실행 가이드](docs/01-run-local.md)
 
 ---
 
-## 📚 문서
-> - [로컬 실행 가이드](docs/01-run-local.md) 
-> - [아키텍처 및 규약](docs/02-architecture.md) 
-> - [테스트 및 REST Docs](docs/03-testing.md) 
-> - [대용량 데이터 조회 성능 개선 상세](docs/04-search.md) 
-> - [선착순 쿠폰 발급 동시성 제어 상세](docs/05-concurrency.md) 
+## 📚 상세 문서
 
-## 📘 참고 자료 (Notion)
-> - [서버 인프라 구성도](https://www.notion.so/2f555588581980378187cd547219c018?source=copy_link)
-> - [대규모 데이터 조회 성능 튜닝](https://www.notion.so/2fc55588581980c3bebee8aa571b661e?source=copy_link) 
-> - [실시간 쿠폰 발급 동시성 제어](https://www.notion.so/2fc55588581980d4b637f5ea13085351?source=copy_link) 
+- [로컬 실행 가이드](docs/01-run-local.md)
+- [아키텍처 및 규약](docs/02-architecture.md)
+- [테스트 및 REST Docs](docs/03-testing.md)
+- [대용량 데이터 조회 성능 개선](docs/04-search.md)
+- [선착순 쿠폰 발급 동시성 제어](docs/05-concurrency.md)
 
+---
+
+## 📘 추가 기록
+
+- [서버 인프라 구성도](https://www.notion.so/2f555588581980378187cd547219c018?source=copy_link)
+- [대규모 데이터 조회 성능 튜닝](https://www.notion.so/2fc55588581980c3bebee8aa571b661e?source=copy_link)
+- [실시간 쿠폰 발급 동시성 제어](https://www.notion.so/2fc55588581980d4b637f5ea13085351?source=copy_link)
+
+---
 
 ## 🔗 관련 리포지토리
-> - [FastPick Infra](https://github.com/maximum-zero/fastpick-infra)
-> - [FastPick FE](https://github.com/maximum-zero/fastpick-fe)
+
+[FastPick Infra](https://github.com/maximum-zero/fastpick-infra)
